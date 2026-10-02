@@ -1,0 +1,6 @@
+{
+  "name": "AutoGestión Pro - Sistema Automotriz",
+  "description": "Sistema integral de gestión de talleres automotrices, órdenes de servicio, inventario de refacciones, vehículos, clientes y facturación.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
