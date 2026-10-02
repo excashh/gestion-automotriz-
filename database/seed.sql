@@ -13,9 +13,9 @@ ON CONFLICT (id) DO NOTHING;
 
 -- 2. USUARIOS
 INSERT INTO usuarios (id, rol_id, nombre, email, password_hash, activo) VALUES
-(1, 1, 'Carlos Administrador', 'admin@autopro.com', '$2a$10$wT8KzE7a9M2.UeL7xWnF/u0j8E9hG4W9y9xX1r8Bv6GvH6gHkLg2e', true),
-(2, 2, 'Laura Recepción', 'recepcion@autopro.com', '$2a$10$wT8KzE7a9M2.UeL7xWnF/u0j8E9hG4W9y9xX1r8Bv6GvH6gHkLg2e', true),
-(3, 3, 'Miguel Mecánico', 'mecanico@autopro.com', '$2a$10$wT8KzE7a9M2.UeL7xWnF/u0j8E9hG4W9y9xX1r8Bv6GvH6gHkLg2e', true)
+(1, 1, 'Carlos Administrador', 'admin@autopro.com', '$2a$10$oqPfiMrnZOgT80EsTaGVne/oVsIBl2ywEyOQyBdN0wOYPwRgD4fsm', true),
+(2, 2, 'Laura Recepción', 'recepcion@autopro.com', '$2a$10$oqPfiMrnZOgT80EsTaGVne/oVsIBl2ywEyOQyBdN0wOYPwRgD4fsm', true),
+(3, 3, 'Miguel Mecánico', 'mecanico@autopro.com', '$2a$10$oqPfiMrnZOgT80EsTaGVne/oVsIBl2ywEyOQyBdN0wOYPwRgD4fsm', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 3. MECÁNICOS
