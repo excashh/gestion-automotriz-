@@ -30,6 +30,24 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Endpoint raíz de bienvenida a la API
+app.get('/api', (req, res) => {
+  res.status(200).json({
+    success: true,
+    sistema: 'AutoPro Taller Automotriz — API REST',
+    version: '1.0.0',
+    modulos: {
+      auth: '/api/auth/login',
+      clientes: '/api/clientes',
+      refacciones: '/api/refacciones',
+      ordenes: '/api/ordenes',
+      dashboard: '/api/dashboard/stats',
+      documentacion: '/docs/api.md',
+    },
+    nota: 'Para acceder a las interfaces visuales, ingresa a http://localhost:5173',
+  });
+});
+
 // Rutas principales de la API (Sección 5 y 8 de la rúbrica)
 app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clientesRoutes);

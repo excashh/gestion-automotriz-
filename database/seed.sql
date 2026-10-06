@@ -1,8 +1,6 @@
--- =====================================================================
--- AutoPro Taller Automotriz — seed.sql (PostgreSQL 16)
+
 -- Password para todos los usuarios de prueba: Password123!
--- Hash bcrypt (cost 10): $2a$10$wT8KzE7a9M2.UeL7xWnF/u0j8E9hG4W9y9xX1r8Bv6GvH6gHkLg2e
--- =====================================================================
+
 
 -- 1. ROLES
 INSERT INTO roles (id, nombre, descripcion) VALUES

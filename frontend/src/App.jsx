@@ -370,7 +370,7 @@ export default function App() {
             <Wrench className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white tracking-wide">AutoPro</h2>
+            <h2 className="text-lg font-bold text-white tracking-wide">Gestion Automotriz</h2>
             <span className="text-xs text-blue-400 font-medium uppercase tracking-wider">{user.rol}</span>
           </div>
         </div>

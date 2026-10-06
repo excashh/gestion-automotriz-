@@ -1,7 +1,4 @@
--- =====================================================================
--- AutoPro Taller Automotriz — schema.sql
--- PostgreSQL 16 · Normalizado a 3FN
--- =====================================================================
+
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
