@@ -14,11 +14,11 @@ Registro centralizado de micro-tareas para el equipo y el asistente de desarroll
 ## 🛠️ Tareas Pendientes (Backlog Activo)
 
 ### 🚗 Módulo: Vehículos y Clientes
-- [ ] **[TASK-001]** **Backend: Validación de formato y longitud de placas y VIN**
-  - *Módulo:* Backend (`src/routes/` o `src/controllers/`)
+- [x] **[TASK-001]** **Backend & Frontend: Validación de formato y longitud de placas y VIN** *(Completada)*
+  - *Módulo:* Backend (`src/controllers/clientes.controller.js`) & Frontend (`src/App.jsx`)
   - *Prioridad:* Media
-  - *Descripción:* Asegurar que el registro de vehículos rechace VINs con longitud distinta a 17 caracteres y formatear placas a mayúsculas.
-  - *Rama sugerida:* `feature/task-001-validacion-vin-placas`
+  - *Descripción:* Asegurar que el registro de vehículos rechace VINs con longitud distinta a 17 caracteres, formatear placas a mayúsculas y agregar campo VIN en UI.
+  - *Rama:* `feature/task-001-validacion-vin-placas`
 
 - [ ] **[TASK-002]** **Frontend: Búsqueda rápida de clientes con debounce**
   - *Módulo:* Frontend (`src/App.jsx` o componente clientes)
@@ -65,8 +65,13 @@ Registro centralizado de micro-tareas para el equipo y el asistente de desarroll
   - *Descripción:* Crear endpoint `GET /api/reportes/ventas?desde=&hasta=` que retorne el total facturado y desglose.
   - *Rama sugerida:* `feature/task-007-reporte-ventas-rango`
 
----
-
 ## ✅ Tareas Completadas
 
-*(Las tareas finalizadas se moverán a esta sección con la fecha y el commit correspondiente)*
+- **[TASK-001] Validación de formato y longitud de placas y VIN**
+  - **Fecha:** 2026-10-06
+  - **Rama:** `feature/task-001-validacion-vin-placas`
+  - **Cambios realizados:**
+    - Normalización de placas a mayúsculas y validación de longitud (3 a 10 caracteres) y caracteres alfanuméricos con guiones.
+    - Validación estricta de longitud del número VIN (exactamente 17 caracteres alfanuméricos).
+    - Validaciones adicionales en backend de año (1950-2100) y kilometraje no negativo.
+    - Integración de campo VIN y auto-mayúsculas en modal de vinculación vehicular en el frontend.

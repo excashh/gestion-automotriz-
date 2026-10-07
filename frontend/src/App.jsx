@@ -73,7 +73,7 @@ export default function App() {
   const [modalCliente, setModalCliente] = useState(false);
   const [nuevoCliente, setNuevoCliente] = useState({ nombre: '', telefono: '', email: '', direccion: '', rfc: '' });
   const [modalVehiculo, setModalVehiculo] = useState(null); // id del cliente
-  const [nuevoVehiculo, setNuevoVehiculo] = useState({ placas: '', marca: '', modelo: '', anio: 2022 });
+  const [nuevoVehiculo, setNuevoVehiculo] = useState({ placas: '', vin: '', marca: '', modelo: '', anio: 2022 });
 
   const [modalNuevaOrden, setModalNuevaOrden] = useState(false);
   const [nuevaOrden, setNuevaOrden] = useState({ vehiculo_id: '', motivo: '', km_entrada: 0 });
@@ -194,7 +194,7 @@ export default function App() {
       await clientesService.crearVehiculo({ ...nuevoVehiculo, cliente_id: modalVehiculo });
       notificar('Vehículo vinculado con éxito');
       setModalVehiculo(null);
-      setNuevoVehiculo({ placas: '', marca: '', modelo: '', anio: 2022 });
+      setNuevoVehiculo({ placas: '', vin: '', marca: '', modelo: '', anio: 2022 });
       cargarClientes();
       cargarDashboard();
     } catch (err) {
@@ -978,10 +978,22 @@ export default function App() {
                   <input
                     type="text"
                     required
+                    maxLength={10}
                     placeholder="ABC-123-A"
                     value={nuevoVehiculo.placas}
-                    onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, placas: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg font-mono"
+                    onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, placas: e.target.value.toUpperCase() })}
+                    className="w-full text-sm border p-2 rounded-lg font-mono uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600">Número VIN (17 caracteres, opcional)</label>
+                  <input
+                    type="text"
+                    maxLength={17}
+                    placeholder="1HGCR2F83HA123456"
+                    value={nuevoVehiculo.vin || ''}
+                    onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, vin: e.target.value.toUpperCase() })}
+                    className="w-full text-sm border p-2 rounded-lg font-mono uppercase"
                   />
                 </div>
                 <div>

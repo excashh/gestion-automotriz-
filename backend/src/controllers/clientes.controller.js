@@ -180,11 +180,76 @@ export const crearVehiculo = async (req, res, next) => {
       });
     }
 
+    // Normalización y validación de placas
+    const placaLimpia = placas.trim().toUpperCase();
+    if (placaLimpia.length < 3 || placaLimpia.length > 10) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'La placa debe tener entre 3 y 10 caracteres.',
+      });
+    }
+
+    if (!/^[A-Z0-9-]+$/.test(placaLimpia)) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'La placa solo puede contener letras, números y guiones.',
+      });
+    }
+
+    // Normalización y validación de VIN (Número de Identificación Vehicular)
+    let vinLimpio = null;
+    if (vin && vin.trim()) {
+      vinLimpio = vin.trim().toUpperCase();
+      if (vinLimpio.length !== 17) {
+        return res.status(400).json({
+          success: false,
+          mensaje: 'El número VIN debe contener exactamente 17 caracteres.',
+        });
+      }
+
+      if (!/^[A-Z0-9]{17}$/.test(vinLimpio)) {
+        return res.status(400).json({
+          success: false,
+          mensaje: 'El número VIN solo puede contener caracteres alfanuméricos válidos.',
+        });
+      }
+    }
+
+    // Validación de año
+    const anioNum = parseInt(anio, 10);
+    if (isNaN(anioNum) || anioNum < 1950 || anioNum > 2100) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'El año del vehículo debe estar entre 1950 y 2100.',
+      });
+    }
+
+    // Validación de kilometraje
+    const kmNum = kilometraje !== undefined && kilometraje !== null ? parseInt(kilometraje, 10) : 0;
+    if (isNaN(kmNum) || kmNum < 0) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'El kilometraje debe ser un valor numérico mayor o igual a cero.',
+      });
+    }
+
     const result = await query(
       `INSERT INTO vehiculos (cliente_id, placas, vin, marca, modelo, anio, color, kilometraje, motor, transmision, combustible)
-       VALUES ($1, UPPER($2), $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
-      [cliente_id, placas.trim(), vin ? vin.trim().toUpperCase() : null, marca, modelo, anio, color || null, kilometraje || 0, motor || null, transmision || null, combustible || null]
+      [
+        cliente_id,
+        placaLimpia,
+        vinLimpio,
+        marca.trim(),
+        modelo.trim(),
+        anioNum,
+        color ? color.trim() : null,
+        kmNum,
+        motor ? motor.trim() : null,
+        transmision ? transmision.trim() : null,
+        combustible ? combustible.trim() : null
+      ]
     );
 
     res.status(201).json({
