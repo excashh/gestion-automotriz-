@@ -20,11 +20,11 @@ Registro centralizado de micro-tareas para el equipo y el asistente de desarroll
   - *Descripción:* Asegurar que el registro de vehículos rechace VINs con longitud distinta a 17 caracteres, formatear placas a mayúsculas y agregar campo VIN en UI.
   - *Rama:* `feature/task-001-validacion-vin-placas`
 
-- [ ] **[TASK-002]** **Frontend: Búsqueda rápida de clientes con debounce**
+- [x] **[TASK-002]** **Frontend: Búsqueda rápida de clientes con debounce** *(Completada)*
   - *Módulo:* Frontend (`src/App.jsx` o componente clientes)
   - *Prioridad:* Media
   - *Descripción:* Agregar debounce de 300ms en el input de búsqueda de clientes para no saturar las llamadas a la API.
-  - *Rama sugerida:* `feature/task-002-debounce-clientes`
+  - *Rama:* `feature/task-002-debounce-clientes`
 
 ---
 
@@ -75,3 +75,9 @@ Registro centralizado de micro-tareas para el equipo y el asistente de desarroll
     - Validación estricta de longitud del número VIN (exactamente 17 caracteres alfanuméricos).
     - Validaciones adicionales en backend de año (1950-2100) y kilometraje no negativo.
     - Integración de campo VIN y auto-mayúsculas en modal de vinculación vehicular en el frontend.
+
+- **[TASK-002] Frontend: Búsqueda rápida de clientes con debounce**
+  - **Fecha:** 2026-10-06
+  - **Rama:** `feature/task-002-debounce-clientes`
+  - **Cambios realizados:**
+    - Implementación de temporizador/debounce de 300ms en el filtro de búsqueda de clientes para optimizar peticiones API.
