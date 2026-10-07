@@ -442,138 +442,145 @@ export default function App() {
       <main className="flex-1 overflow-y-auto p-8">
         {/* VISTA 1: DASHBOARD */}
         {activeTab === 'dashboard' && dashboardData && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-extrabold text-slate-900">Panel de Control General</h1>
-                <p className="text-sm text-slate-500">Métricas en tiempo real, órdenes activas y estado de inventario</p>
-              </div>
-              <button
-                onClick={cargarDashboard}
-                className="p-2.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg shadow-sm"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            </div>
+          <div className="relative space-y-6">
+            {/* Elementos decorativos para el Glassmorphism en el fondo */}
+            <div className="absolute -top-10 left-10 w-96 h-96 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 pointer-events-none"></div>
+            <div className="absolute top-40 right-10 w-96 h-96 bg-purple-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 pointer-events-none"></div>
+            <div className="absolute bottom-10 left-1/3 w-96 h-96 bg-emerald-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 pointer-events-none"></div>
 
-            {/* Tarjetas de Contadores (Req #12) */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
-                  <FileText className="w-6 h-6" />
-                </div>
+            <div className="relative z-10 space-y-6">
+              <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase">Órdenes Activas</span>
-                  <h3 className="text-2xl font-black text-slate-800">{dashboardData.resumen.ordenesActivas}</h3>
+                  <h1 className="text-2xl font-extrabold text-slate-900">Panel de Control General</h1>
+                  <p className="text-sm text-slate-500">Métricas en tiempo real, órdenes activas y estado de inventario</p>
+                </div>
+                <button
+                  onClick={cargarDashboard}
+                  className="p-2.5 bg-white/60 backdrop-blur-md border border-white/50 text-slate-600 hover:bg-white/80 rounded-xl shadow-sm transition-all"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Tarjetas de Contadores (Req #12) */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <div className="bg-white/60 backdrop-blur-xl p-5 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 transition-transform hover:-translate-y-1">
+                  <div className="p-3 bg-blue-500/10 text-blue-600 rounded-xl">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Órdenes Activas</span>
+                    <h3 className="text-2xl font-black text-slate-800">{dashboardData.resumen.ordenesActivas}</h3>
+                  </div>
+                </div>
+
+                <div className="bg-white/60 backdrop-blur-xl p-5 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 transition-transform hover:-translate-y-1">
+                  <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl">
+                    <DollarSign className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ingresos Cobrados</span>
+                    <h3 className="text-2xl font-black text-slate-800">${dashboardData.resumen.ingresosTotales.toFixed(2)}</h3>
+                  </div>
+                </div>
+
+                <div className="bg-white/60 backdrop-blur-xl p-5 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 transition-transform hover:-translate-y-1">
+                  <div className="p-3 bg-indigo-500/10 text-indigo-600 rounded-xl">
+                    <Car className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vehículos Registrados</span>
+                    <h3 className="text-2xl font-black text-slate-800">{dashboardData.resumen.totalVehiculos}</h3>
+                  </div>
+                </div>
+
+                <div className="bg-white/60 backdrop-blur-xl p-5 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 transition-transform hover:-translate-y-1">
+                  <div className="p-3 bg-amber-500/10 text-amber-600 rounded-xl">
+                    <AlertTriangle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Alertas Stock Bajo</span>
+                    <h3 className="text-2xl font-black text-amber-600">{dashboardData.resumen.alertasStock}</h3>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
-                  <DollarSign className="w-6 h-6" />
+              {/* Gráficas Dinámicas Reales (Req #24) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Gráfica 1: Estados de Órdenes */}
+                <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                  <h3 className="text-base font-bold text-slate-800 mb-4">Órdenes de Trabajo por Estado</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={dashboardData.graficas.ordenesPorEstado}
+                          dataKey="cantidad"
+                          nameKey="estado"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          label
+                        >
+                          {dashboardData.graficas.ordenesPorEstado.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)' }} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase">Ingresos Cobrados</span>
-                  <h3 className="text-2xl font-black text-slate-800">${dashboardData.resumen.ingresosTotales.toFixed(2)}</h3>
+
+                {/* Gráfica 2: Ingresos por Mes */}
+                <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                  <h3 className="text-base font-bold text-slate-800 mb-4">Ingresos Recaudados (Últimos Periodos)</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={dashboardData.graficas.ingresosMensuales}>
+                        <XAxis dataKey="mes" stroke="#94a3b8" />
+                        <YAxis stroke="#94a3b8" />
+                        <Tooltip cursor={{ fill: 'rgba(255,255,255,0.4)' }} contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)' }} />
+                        <Bar dataKey="total" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
-                  <Car className="w-6 h-6" />
+              {/* Actividad Reciente */}
+              <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                <div className="px-6 py-4 border-b border-white/40">
+                  <h3 className="text-base font-bold text-slate-800">Órdenes de Servicio Recientes</h3>
                 </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase">Vehículos Registrados</span>
-                  <h3 className="text-2xl font-black text-slate-800">{dashboardData.resumen.totalVehiculos}</h3>
-                </div>
-              </div>
-
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-amber-100 text-amber-600 rounded-xl">
-                  <AlertTriangle className="w-6 h-6" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase">Alertas Stock Bajo</span>
-                  <h3 className="text-2xl font-black text-amber-600">{dashboardData.resumen.alertasStock}</h3>
-                </div>
-              </div>
-            </div>
-
-            {/* Gráficas Dinámicas Reales (Req #24) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Gráfica 1: Estados de Órdenes */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 className="text-base font-bold text-slate-800 mb-4">Órdenes de Trabajo por Estado</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={dashboardData.graficas.ordenesPorEstado}
-                        dataKey="cantidad"
-                        nameKey="estado"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        label
-                      >
-                        {dashboardData.graficas.ordenesPorEstado.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Gráfica 2: Ingresos por Mes */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 className="text-base font-bold text-slate-800 mb-4">Ingresos Recaudados (Últimos Periodos)</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dashboardData.graficas.ingresosMensuales}>
-                      <XAxis dataKey="mes" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="total" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            {/* Actividad Reciente */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-200">
-                <h3 className="text-base font-bold text-slate-800">Órdenes de Servicio Recientes</h3>
-              </div>
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-400 font-semibold">
-                  <tr>
-                    <th className="px-6 py-3">Folio</th>
-                    <th className="px-6 py-3">Vehículo</th>
-                    <th className="px-6 py-3">Cliente</th>
-                    <th className="px-6 py-3">Estado</th>
-                    <th className="px-6 py-3 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {dashboardData.ordenesRecientes.map((o) => (
-                    <tr key={o.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-3.5 font-bold text-blue-600">{o.folio}</td>
-                      <td className="px-6 py-3.5">{o.marca} {o.modelo} ({o.placas})</td>
-                      <td className="px-6 py-3.5">{o.cliente_nombre}</td>
-                      <td className="px-6 py-3.5">
-                        <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700">
-                          {o.estado}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3.5 text-right font-bold text-slate-800">${parseFloat(o.total).toFixed(2)}</td>
+                <table className="w-full text-left text-sm text-slate-600">
+                  <thead className="bg-white/40 text-xs uppercase text-slate-500 font-semibold">
+                    <tr>
+                      <th className="px-6 py-3">Folio</th>
+                      <th className="px-6 py-3">Vehículo</th>
+                      <th className="px-6 py-3">Cliente</th>
+                      <th className="px-6 py-3">Estado</th>
+                      <th className="px-6 py-3 text-right">Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-white/40">
+                    {dashboardData.ordenesRecientes.map((o) => (
+                      <tr key={o.id} className="hover:bg-white/50 transition-colors">
+                        <td className="px-6 py-3.5 font-bold text-blue-600">{o.folio}</td>
+                        <td className="px-6 py-3.5">{o.marca} {o.modelo} ({o.placas})</td>
+                        <td className="px-6 py-3.5">{o.cliente_nombre}</td>
+                        <td className="px-6 py-3.5">
+                          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/60 text-slate-700 shadow-sm border border-white/60">
+                            {o.estado}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3.5 text-right font-bold text-slate-800">${parseFloat(o.total).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
