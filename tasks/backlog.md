@@ -35,11 +35,11 @@ Registro centralizado de micro-tareas para el equipo y el asistente de desarroll
   - *Descripción:* Resaltar en color rojo o con insignia de advertencia las piezas cuyo stock actual sea menor o igual al stock mínimo.
   - *Rama sugerida:* `feature/task-003-alerta-stock-critico`
 
-- [ ] **[TASK-004]** **Backend: Validación de stock negativo en creación/edición**
-  - *Módulo:* Backend
+- [x] **[TASK-004]** **Backend: Validación de stock negativo en creación/edición** *(Completada)*
+  - *Módulo:* Backend (`src/controllers/refacciones.controller.js`)
   - *Prioridad:* Media
   - *Descripción:* Impedir registrar existencias o stocks mínimos menores a 0 devolviendo error HTTP 400.
-  - *Rama sugerida:* `feature/task-004-validar-stock-positivo`
+  - *Rama:* `feature/task-004-validar-stock-positivo`
 
 ---
 
@@ -81,3 +81,11 @@ Registro centralizado de micro-tareas para el equipo y el asistente de desarroll
   - **Rama:** `feature/task-002-debounce-clientes`
   - **Cambios realizados:**
     - Implementación de temporizador/debounce de 300ms en el filtro de búsqueda de clientes para optimizar peticiones API.
+
+- **[TASK-004] Backend: Validación de stock negativo en creación/edición**
+  - **Fecha:** 2026-10-13
+  - **Rama:** `feature/task-004-validar-stock-positivo`
+  - **Cambios realizados:**
+    - Validación de `stock` y `stock_minimo` en `POST /refacciones` y `PUT /refacciones/:id`: deben ser enteros mayores o iguales a 0; de lo contrario se responde HTTP 400 con mensaje descriptivo.
+    - `POST /refacciones` ya no responde 422 por stock negativo (queda 422 solo para `costo` y `precio_publico` negativos).
+    - Documentación de los códigos de respuesta en `docs/api.md`.

@@ -1,5 +1,17 @@
 import { query } from '../config/db.js';
 
+// TASK-004: existencias y stock mínimo deben ser enteros mayores o iguales a 0.
+const validarExistencias = ({ stock, stock_minimo }) => {
+  for (const [campo, valor] of Object.entries({ stock, stock_minimo })) {
+    if (valor === undefined || valor === null) continue;
+    const numero = typeof valor === 'string' && valor.trim() !== '' ? Number(valor) : valor;
+    if (typeof numero !== 'number' || !Number.isInteger(numero) || numero < 0) {
+      return `${campo} debe ser un número entero mayor o igual a 0.`;
+    }
+  }
+  return null;
+};
+
 export const getRefacciones = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page || '1', 10);
@@ -80,10 +92,18 @@ export const crearRefaccion = async (req, res, next) => {
       });
     }
 
-    if (costo < 0 || precio_publico < 0 || (stock !== undefined && stock < 0)) {
+    const errorExistencias = validarExistencias({ stock, stock_minimo });
+    if (errorExistencias) {
+      return res.status(400).json({
+        success: false,
+        mensaje: errorExistencias,
+      });
+    }
+
+    if (costo < 0 || precio_publico < 0) {
       return res.status(422).json({
         success: false,
-        mensaje: 'Los valores monetarios y de inventario no pueden ser negativos.',
+        mensaje: 'Los valores monetarios no pueden ser negativos.',
       });
     }
 
@@ -107,7 +127,15 @@ export const crearRefaccion = async (req, res, next) => {
 export const actualizarRefaccion = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { categoria_id, nombre, marca, costo, precio_publico, stock_minimo } = req.body;
+    const { categoria_id, nombre, marca, costo, precio_publico, stock, stock_minimo } = req.body;
+
+    const errorExistencias = validarExistencias({ stock, stock_minimo });
+    if (errorExistencias) {
+      return res.status(400).json({
+        success: false,
+        mensaje: errorExistencias,
+      });
+    }
 
     const result = await query(
       `UPDATE refacciones
