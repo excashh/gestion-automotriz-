@@ -52,6 +52,7 @@ export default function App() {
   const [loginPassword, setLoginPassword] = useState('Password123!');
   const [loginError, setLoginError] = useState('');
   const [loadingLogin, setLoadingLogin] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Estados de datos
   const [dashboardData, setDashboardData] = useState(null);
@@ -285,6 +286,11 @@ export default function App() {
             </div>
           </div>
 
+          <div className="mb-6 text-center">
+            <h2 className="text-xl font-bold text-slate-800">Bienvenido a AutoPro</h2>
+            <p className="mt-1 text-sm text-slate-500">Ingresa tu correo y contraseña para acceder al sistema.</p>
+          </div>
+
           {loginError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 flex-shrink-0" />
@@ -307,12 +313,22 @@ export default function App() {
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">Contraseña</label>
               <input
-                type="password"
+                id="login-password"
+                type={showLoginPassword ? 'text' : 'password'}
                 required
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm"
               />
+              <button
+                type="button"
+                onClick={() => setShowLoginPassword((visible) => !visible)}
+                aria-controls="login-password"
+                aria-pressed={showLoginPassword}
+                className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 rounded"
+              >
+                {showLoginPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              </button>
             </div>
 
             <button
