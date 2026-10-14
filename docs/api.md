@@ -93,7 +93,14 @@ Obtiene las refacciones que han caído por debajo de su umbral mínimo de seguri
 ### `POST /refacciones`
 Agrega una nueva pieza al catálogo.
 - **Permisos:** Rol `admin`.
-- **Respuestas:** `201 Created`, `422 Unprocessable Entity` (números negativos).
+- **Validaciones:** `stock` y `stock_minimo` deben ser enteros mayores o iguales a 0.
+- **Respuestas:** `201 Created`, `400 Bad Request` (campos obligatorios faltantes, o `stock` / `stock_minimo` negativos o no enteros), `422 Unprocessable Entity` (`costo` o `precio_publico` negativos).
+
+### `PUT /refacciones/:id`
+Actualiza los datos de una pieza activa del catálogo.
+- **Permisos:** Rol `admin`.
+- **Validaciones:** si se envían `stock` o `stock_minimo`, deben ser enteros mayores o iguales a 0.
+- **Respuestas:** `200 OK`, `400 Bad Request` (`stock` / `stock_minimo` negativos o no enteros), `404 Not Found` (refacción inexistente o inactiva).
 
 ---
 
