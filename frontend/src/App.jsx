@@ -11,11 +11,18 @@ import {
   Search,
   CheckCircle,
   AlertTriangle,
-  Clock,
   DollarSign,
   Calendar,
   X,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  Shield,
+  ArrowRight,
+  Phone,
+  Mail,
+  Hash,
+  Clock,
+  Check
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -37,7 +44,8 @@ import {
   ordenesService
 } from './services/api';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b'];
+// Paleta de gráficas: Carmesí Deportivo, Vino profundo, Ámbar cálido, Esmeralda, Pizarra grafito
+const CHART_COLORS = ['#e11d48', '#be123c', '#f59e0b', '#10b981', '#71717a', '#3f3f46'];
 
 export default function App() {
   const [user, setUser] = useState(() => {
@@ -82,7 +90,6 @@ export default function App() {
   const [ordenSeleccionada, setOrdenSeleccionada] = useState(null);
   const [detalleOrden, setDetalleOrden] = useState(null);
   const [agregarRefData, setAgregarRefData] = useState({ refaccion_id: '', cantidad: 1 });
-  const [agregarSrvData, setAgregarSrvData] = useState({ servicio_id: 1, cantidad: 1 });
   const [montoPago, setMontoPago] = useState('');
   const [metodoPago, setMetodoPago] = useState('efectivo');
 
@@ -113,7 +120,7 @@ export default function App() {
     }
   };
 
-  // Cargar Clientes
+  // Cargar Clientes con debounce implícito si se activa por efecto
   const cargarClientes = async () => {
     try {
       const data = await clientesService.getClientes(1, searchClientes);
@@ -122,6 +129,15 @@ export default function App() {
       console.error(e);
     }
   };
+
+  // Debounce para búsqueda de clientes
+  useEffect(() => {
+    if (!user) return;
+    const timer = setTimeout(() => {
+      cargarClientes();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchClientes]);
 
   // Cargar Refacciones
   const cargarRefacciones = async () => {
@@ -271,307 +287,508 @@ export default function App() {
     }
   };
 
-  // PANTALLA DE LOGIN
+  // Helper para badge de estado de orden
+  const getEstadoBadge = (estado) => {
+    switch (estado) {
+      case 'entregada':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Entregada
+          </span>
+        );
+      case 'completada':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Completada
+          </span>
+        );
+      case 'en_reparacion':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> En Reparación
+          </span>
+        );
+      case 'en_revision':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> En Revisión
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-zinc-100 text-zinc-700 border border-zinc-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400"></span> {estado || 'Programada'}
+          </span>
+        );
+    }
+  };
+
+  // =========================================================================
+  // 1. PANTALLA DE LOGIN - ESTILO SAAS CLEAN PRO AUTOMOTRIZ (CRIMSON SPORT)
+  // =========================================================================
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="p-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-500/30">
-              <Wrench className="w-8 h-8" />
+      <div className="min-h-screen bg-zinc-950 flex flex-col justify-center items-center p-4 relative overflow-hidden selection:bg-rose-500 selection:text-white">
+        {/* Fondo sutil con acabado de alta tecnología */}
+        <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none"></div>
+        <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-rose-950/25 via-zinc-950/50 to-transparent pointer-events-none"></div>
+
+        <div className="relative w-full max-w-md z-10">
+          {/* Logo y Encabezado */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-600 to-rose-800 text-white shadow-xl shadow-rose-950/60 ring-1 ring-white/20 mb-4">
+              <Wrench className="w-7 h-7" />
             </div>
-            <div>
-              <h1 className="text-2xl font-black text-slate-800 tracking-tight">AutoPro</h1>
-              <p className="text-xs text-slate-500 font-medium">Gestión Automotriz & POS</p>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center justify-center gap-2">
+              Auto<span className="text-rose-500">Pro</span>
+            </h1>
+            <p className="text-sm text-zinc-400 mt-1">
+              Plataforma de Control Operativo y Servicio Automotriz
+            </p>
+          </div>
+
+          {/* Tarjeta de Inicio de Sesión */}
+          <div className="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-8 shadow-2xl backdrop-blur-xl">
+            {loginError && (
+              <div className="mb-5 p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm rounded-xl flex items-center gap-2.5">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+                <span>{loginError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Correo Electrónico
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="usuario@autopro.com"
+                  className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                    Contraseña
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((v) => !v)}
+                    className="text-xs font-medium text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+                  >
+                    {showLoginPassword ? 'Ocultar' : 'Mostrar'}
+                  </button>
+                </div>
+                <input
+                  id="login-password"
+                  type={showLoginPassword ? 'text' : 'password'}
+                  required
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loadingLogin}
+                className="w-full py-3 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-rose-950/60 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer mt-2"
+              >
+                {loadingLogin ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" /> Verificando credenciales...
+                  </>
+                ) : (
+                  <>
+                    Iniciar Sesión <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Accesos rápidos de prueba con roles */}
+            <div className="mt-8 pt-6 border-t border-zinc-800/80">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Acceso Demo Rápido:
+                </span>
+                <span className="text-[11px] text-zinc-500">Role-Based Access Control</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginEmail('admin@autopro.com');
+                    setLoginPassword('Password123!');
+                  }}
+                  className="p-2.5 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700 rounded-xl text-left transition-all group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white group-hover:text-rose-400 transition-colors">
+                      Admin
+                    </span>
+                    <span className="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded font-mono">
+                      Total
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-0.5 truncate">admin@autopro.com</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginEmail('recepcion@autopro.com');
+                    setLoginPassword('Password123!');
+                  }}
+                  className="p-2.5 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700 rounded-xl text-left transition-all group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white group-hover:text-rose-400 transition-colors">
+                      Recepción
+                    </span>
+                    <span className="text-[10px] bg-zinc-800 text-zinc-300 border border-zinc-700 px-1.5 py-0.5 rounded font-mono">
+                      Piso
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-0.5 truncate">recepcion@autopro.com</p>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="mb-6 text-center">
-            <h2 className="text-xl font-bold text-slate-800">Bienvenido a AutoPro</h2>
-            <p className="mt-1 text-sm text-slate-500">Ingresa tu correo y contraseña para acceder al sistema.</p>
-          </div>
-
-          {loginError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span>{loginError}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">Correo Electrónico</label>
-              <input
-                type="email"
-                required
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">Contraseña</label>
-              <input
-                id="login-password"
-                type={showLoginPassword ? 'text' : 'password'}
-                required
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => setShowLoginPassword((visible) => !visible)}
-                aria-controls="login-password"
-                aria-pressed={showLoginPassword}
-                className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 rounded"
-              >
-                {showLoginPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              </button>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loadingLogin}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition disabled:opacity-50 text-sm"
-            >
-              {loadingLogin ? 'Verificando...' : 'Iniciar Sesión'}
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-slate-100">
-            <p className="text-xs font-semibold text-slate-500 mb-2">Usuarios demo con RBAC:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => { setLoginEmail('admin@autopro.com'); setLoginPassword('Password123!'); }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-medium text-left"
-              >
-                👑 <b>Admin</b> (Total)
-              </button>
-              <button
-                type="button"
-                onClick={() => { setLoginEmail('recepcion@autopro.com'); setLoginPassword('Password123!'); }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-medium text-left"
-              >
-                📋 <b>Recepción</b>
-              </button>
-            </div>
-          </div>
+          <p className="text-center text-xs text-zinc-500 mt-6">
+            AutoPro v1.2 • Diseño SaaS Clean Pro Crimson Sport
+          </p>
         </div>
       </div>
     );
   }
 
-  // PANTALLA PRINCIPAL CON AUTENTICACIÓN
+  // =========================================================================
+  // 2. APLICACIÓN PRINCIPAL (AUTENTICADO)
+  // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      {/* Notificación Toast */}
+    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800 selection:bg-rose-500 selection:text-white">
+      {/* Notificación Toast flotante */}
       {notificacion && (
         <div
-          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-xl text-white font-medium text-sm flex items-center gap-2 transition ${
-            notificacion.tipo === 'error' ? 'bg-red-600' : 'bg-emerald-600'
+          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl text-white font-medium text-sm flex items-center gap-3 transition-all transform animate-in fade-in slide-in-from-bottom-3 ${
+            notificacion.tipo === 'error'
+              ? 'bg-zinc-900 border border-rose-500/50 text-rose-200'
+              : 'bg-zinc-900 border border-emerald-500/50 text-emerald-200'
           }`}
         >
-          {notificacion.tipo === 'error' ? <AlertTriangle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
+          {notificacion.tipo === 'error' ? (
+            <AlertTriangle className="w-5 h-5 text-rose-400 flex-shrink-0" />
+          ) : (
+            <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+          )}
           <span>{notificacion.msg}</span>
         </div>
       )}
 
-      {/* Barra Lateral / Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0">
-        <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-          <div className="p-2 bg-blue-600 rounded-lg text-white">
-            <Wrench className="w-6 h-6" />
+      {/* Barra Lateral / Sidebar - SaaS Clean Pro Carbón con desvanecido sutil rojo */}
+      <aside className="w-64 sidebar-crimson-subtle text-zinc-300 flex flex-col flex-shrink-0 relative z-20">
+        {/* Identidad de Marca */}
+        <div className="p-5 border-b border-zinc-800/80 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-rose-700 text-white flex items-center justify-center shadow-md shadow-rose-950/50 ring-1 ring-white/10">
+            <Wrench className="w-5 h-5" />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-wide">Gestion Automotriz</h2>
-            <span className="text-xs text-blue-400 font-medium uppercase tracking-wider">{user.rol}</span>
+          <div className="overflow-hidden">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-extrabold text-white tracking-tight">AutoPro</h2>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                PRO
+              </span>
+            </div>
+            <p className="text-[11px] text-zinc-400 truncate">Gestión de Taller</p>
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1.5">
+        {/* Navegación Principal */}
+        <nav className="flex-1 p-3.5 space-y-1 overflow-y-auto">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
-              activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800 hover:text-white'
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+              activeTab === 'dashboard'
+                ? 'sidebar-item-active text-white font-semibold'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
             }`}
           >
-            <BarChart3 className="w-4 h-4" /> Dashboard
+            <BarChart3 className="w-4 h-4 flex-shrink-0" />
+            <span>Dashboard</span>
           </button>
 
           <button
             onClick={() => setActiveTab('ordenes')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
-              activeTab === 'ordenes' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800 hover:text-white'
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+              activeTab === 'ordenes'
+                ? 'sidebar-item-active text-white font-semibold'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
             }`}
           >
-            <FileText className="w-4 h-4" /> Órdenes de Trabajo
+            <FileText className="w-4 h-4 flex-shrink-0" />
+            <span>Órdenes de Trabajo</span>
           </button>
 
           <button
             onClick={() => setActiveTab('clientes')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
-              activeTab === 'clientes' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800 hover:text-white'
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+              activeTab === 'clientes'
+                ? 'sidebar-item-active text-white font-semibold'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
             }`}
           >
-            <Users className="w-4 h-4" /> Clientes y Autos
+            <Users className="w-4 h-4 flex-shrink-0" />
+            <span>Clientes y Autos</span>
           </button>
 
           <button
             onClick={() => setActiveTab('inventario')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
-              activeTab === 'inventario' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800 hover:text-white'
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+              activeTab === 'inventario'
+                ? 'sidebar-item-active text-white font-semibold'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
             }`}
           >
-            <Package className="w-4 h-4" /> Inventario Repuestos
+            <Package className="w-4 h-4 flex-shrink-0" />
+            <span>Inventario Repuestos</span>
           </button>
 
           {user.rol === 'admin' && (
             <button
-              onClick={() => { setActiveTab('reportes'); cargarReporte(); }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
-                activeTab === 'reportes' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800 hover:text-white'
+              onClick={() => {
+                setActiveTab('reportes');
+                cargarReporte();
+              }}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+                activeTab === 'reportes'
+                  ? 'sidebar-item-active text-white font-semibold'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
               }`}
             >
-              <Calendar className="w-4 h-4" /> Reportes & Fechas
+              <Calendar className="w-4 h-4 flex-shrink-0" />
+              <span>Reportes & Fechas</span>
             </button>
           )}
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
-          <div className="mb-3 px-2">
-            <p className="text-xs text-slate-400 font-semibold">{user.nombre}</p>
-            <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+        {/* Perfil del Usuario y Cierre de Sesión */}
+        <div className="p-3.5 border-t border-zinc-800/80 bg-zinc-950/70">
+          <div className="flex items-center gap-3 px-2 py-2 mb-2 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-700 to-rose-500 text-white flex items-center justify-center font-bold text-xs ring-1 ring-white/10 flex-shrink-0">
+              {user.nombre ? user.nombre.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <div className="overflow-hidden flex-1">
+              <p className="text-xs font-bold text-white truncate">{user.nombre}</p>
+              <p className="text-[10px] text-zinc-400 font-mono font-medium uppercase tracking-wider">{user.rol}</p>
+            </div>
           </div>
+
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-800 hover:bg-red-600/80 hover:text-white text-slate-400 rounded-lg text-xs font-semibold transition"
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900/80 hover:bg-rose-950/50 hover:text-rose-300 text-zinc-400 border border-zinc-800/80 hover:border-rose-900/50 rounded-xl text-xs font-semibold transition-all cursor-pointer"
           >
-            <LogOut className="w-4 h-4" /> Cerrar Sesión
+            <LogOut className="w-3.5 h-3.5" /> Cerrar Sesión
           </button>
         </div>
       </aside>
 
       {/* Contenido Principal */}
-      <main className="flex-1 overflow-y-auto p-8">
-        {/* VISTA 1: DASHBOARD */}
+      <main className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full">
+        {/* =========================================================================
+            VISTA 1: DASHBOARD
+           ========================================================================= */}
         {activeTab === 'dashboard' && dashboardData && (
-          <div className="relative space-y-6">
-            {/* Elementos decorativos para el Glassmorphism en el fondo */}
-            <div className="absolute -top-10 left-10 w-96 h-96 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 pointer-events-none"></div>
-            <div className="absolute top-40 right-10 w-96 h-96 bg-purple-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 pointer-events-none"></div>
-            <div className="absolute bottom-10 left-1/3 w-96 h-96 bg-emerald-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 pointer-events-none"></div>
+          <div className="space-y-6">
+            {/* Header del Dashboard */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Panel de Control</h1>
+                <p className="text-sm text-slate-500">Métricas operativas en tiempo real, flujo vehicular y refacciones</p>
+              </div>
 
-            <div className="relative z-10 space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-extrabold text-slate-900">Panel de Control General</h1>
-                  <p className="text-sm text-slate-500">Métricas en tiempo real, órdenes activas y estado de inventario</p>
-                </div>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={cargarDashboard}
-                  className="p-2.5 bg-white/60 backdrop-blur-md border border-white/50 text-slate-600 hover:bg-white/80 rounded-xl shadow-sm transition-all"
+                  title="Actualizar métricas"
+                  className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 transition"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                  Actualizar datos
                 </button>
               </div>
+            </div>
 
-              {/* Tarjetas de Contadores (Req #12) */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-                <div className="bg-white/60 backdrop-blur-xl p-5 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 transition-transform hover:-translate-y-1">
-                  <div className="p-3 bg-blue-500/10 text-blue-600 rounded-xl">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Órdenes Activas</span>
-                    <h3 className="text-2xl font-black text-slate-800">{dashboardData.resumen.ordenesActivas}</h3>
+            {/* Tarjetas de Contadores / KPIs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Órdenes Activas */}
+              <div className="pro-card p-5 pro-card-hover">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Órdenes Activas</span>
+                  <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
+                    <FileText className="w-5 h-5" />
                   </div>
                 </div>
-
-                <div className="bg-white/60 backdrop-blur-xl p-5 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 transition-transform hover:-translate-y-1">
-                  <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl">
-                    <DollarSign className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ingresos Cobrados</span>
-                    <h3 className="text-2xl font-black text-slate-800">${dashboardData.resumen.ingresosTotales.toFixed(2)}</h3>
-                  </div>
-                </div>
-
-                <div className="bg-white/60 backdrop-blur-xl p-5 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 transition-transform hover:-translate-y-1">
-                  <div className="p-3 bg-indigo-500/10 text-indigo-600 rounded-xl">
-                    <Car className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vehículos Registrados</span>
-                    <h3 className="text-2xl font-black text-slate-800">{dashboardData.resumen.totalVehiculos}</h3>
-                  </div>
-                </div>
-
-                <div className="bg-white/60 backdrop-blur-xl p-5 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 transition-transform hover:-translate-y-1">
-                  <div className="p-3 bg-amber-500/10 text-amber-600 rounded-xl">
-                    <AlertTriangle className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Alertas Stock Bajo</span>
-                    <h3 className="text-2xl font-black text-amber-600">{dashboardData.resumen.alertasStock}</h3>
-                  </div>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-slate-900">{dashboardData.resumen.ordenesActivas}</h3>
+                  <span className="text-xs font-semibold text-rose-600">en taller</span>
                 </div>
               </div>
 
-              {/* Gráficas Dinámicas Reales (Req #24) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Gráfica 1: Estados de Órdenes */}
-                <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-                  <h3 className="text-base font-bold text-slate-800 mb-4">Órdenes de Trabajo por Estado</h3>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={dashboardData.graficas.ordenesPorEstado}
-                          dataKey="cantidad"
-                          nameKey="estado"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          label
-                        >
-                          {dashboardData.graficas.ordenesPorEstado.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)' }} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
+              {/* Ingresos Cobrados */}
+              <div className="pro-card p-5 pro-card-hover">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ingresos Cobrados</span>
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                    <DollarSign className="w-5 h-5" />
                   </div>
                 </div>
-
-                {/* Gráfica 2: Ingresos por Mes */}
-                <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-                  <h3 className="text-base font-bold text-slate-800 mb-4">Ingresos Recaudados (Últimos Periodos)</h3>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={dashboardData.graficas.ingresosMensuales}>
-                        <XAxis dataKey="mes" stroke="#94a3b8" />
-                        <YAxis stroke="#94a3b8" />
-                        <Tooltip cursor={{ fill: 'rgba(255,255,255,0.4)' }} contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)' }} />
-                        <Bar dataKey="total" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-slate-900">
+                    ${dashboardData.resumen.ingresosTotales.toFixed(2)}
+                  </h3>
+                  <span className="text-xs font-semibold text-emerald-600">liquidado</span>
                 </div>
               </div>
 
-              {/* Actividad Reciente */}
-              <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
-                <div className="px-6 py-4 border-b border-white/40">
-                  <h3 className="text-base font-bold text-slate-800">Órdenes de Servicio Recientes</h3>
+              {/* Vehículos Registrados */}
+              <div className="pro-card p-5 pro-card-hover">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Parque Vehicular</span>
+                  <div className="p-2.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
+                    <Car className="w-5 h-5" />
+                  </div>
                 </div>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-slate-900">{dashboardData.resumen.totalVehiculos}</h3>
+                  <span className="text-xs font-semibold text-slate-500">autos</span>
+                </div>
+              </div>
+
+              {/* Alertas Stock Bajo */}
+              <div className="pro-card p-5 pro-card-hover">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Alertas de Stock</span>
+                  <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-amber-600">{dashboardData.resumen.alertasStock}</h3>
+                  <span className="text-xs font-semibold text-amber-600">reabastecer</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Gráficas Estadísticas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Gráfica 1: Estados de Órdenes */}
+              <div className="pro-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                      Distribución por Estado
+                    </h3>
+                    <p className="text-xs text-slate-500">Órdenes de servicio activas e históricas</p>
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                    Total: {dashboardData.resumen.ordenesActivas} activas
+                  </span>
+                </div>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={dashboardData.graficas.ordenesPorEstado}
+                        dataKey="cantidad"
+                        nameKey="estado"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        innerRadius={45}
+                        paddingAngle={3}
+                        label
+                      >
+                        {dashboardData.graficas.ordenesPorEstado.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#09090b',
+                          borderColor: '#27272a',
+                          color: '#ffffff',
+                          borderRadius: '0.75rem',
+                          fontSize: '12px'
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Gráfica 2: Ingresos por Mes (Barras Carmesí) */}
+              <div className="pro-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                      Facturación Recaudada
+                    </h3>
+                    <p className="text-xs text-slate-500">Comportamiento financiero reciente</p>
+                  </div>
+                  <span className="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
+                    Ingresos
+                  </span>
+                </div>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dashboardData.graficas.ingresosMensuales}>
+                      <XAxis dataKey="mes" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(241, 245, 249, 0.6)' }}
+                        contentStyle={{
+                          backgroundColor: '#09090b',
+                          borderColor: '#27272a',
+                          color: '#ffffff',
+                          borderRadius: '0.75rem',
+                          fontSize: '12px'
+                        }}
+                      />
+                      <Bar dataKey="total" fill="#e11d48" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Actividad Reciente */}
+            <div className="pro-card overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                    Órdenes de Servicio Recientes
+                  </h3>
+                  <p className="text-xs text-slate-500">Últimos movimientos registrados en el taller</p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('ordenes')}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1"
+                >
+                  Ver todas <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-600">
-                  <thead className="bg-white/40 text-xs uppercase text-slate-500 font-semibold">
+                  <thead className="bg-slate-50 text-[11px] uppercase text-slate-500 font-bold border-b border-slate-100">
                     <tr>
                       <th className="px-6 py-3">Folio</th>
                       <th className="px-6 py-3">Vehículo</th>
@@ -580,18 +797,19 @@ export default function App() {
                       <th className="px-6 py-3 text-right">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/40">
+                  <tbody className="divide-y divide-slate-100">
                     {dashboardData.ordenesRecientes.map((o) => (
-                      <tr key={o.id} className="hover:bg-white/50 transition-colors">
-                        <td className="px-6 py-3.5 font-bold text-blue-600">{o.folio}</td>
-                        <td className="px-6 py-3.5">{o.marca} {o.modelo} ({o.placas})</td>
-                        <td className="px-6 py-3.5">{o.cliente_nombre}</td>
+                      <tr key={o.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-6 py-3.5 font-mono font-bold text-rose-600">{o.folio}</td>
                         <td className="px-6 py-3.5">
-                          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/60 text-slate-700 shadow-sm border border-white/60">
-                            {o.estado}
-                          </span>
+                          <span className="font-semibold text-slate-800">{o.marca} {o.modelo}</span>{' '}
+                          <span className="license-plate ml-1 text-xs">{o.placas}</span>
                         </td>
-                        <td className="px-6 py-3.5 text-right font-bold text-slate-800">${parseFloat(o.total).toFixed(2)}</td>
+                        <td className="px-6 py-3.5 text-slate-700">{o.cliente_nombre}</td>
+                        <td className="px-6 py-3.5">{getEstadoBadge(o.estado)}</td>
+                        <td className="px-6 py-3.5 text-right font-bold text-slate-900">
+                          ${parseFloat(o.total).toFixed(2)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -601,39 +819,44 @@ export default function App() {
           </div>
         )}
 
-        {/* VISTA 2: ÓRDENES DE TRABAJO */}
+        {/* =========================================================================
+            VISTA 2: ÓRDENES DE TRABAJO
+           ========================================================================= */}
         {activeTab === 'ordenes' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900">Órdenes de Trabajo</h1>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Órdenes de Trabajo</h1>
                 <p className="text-sm text-slate-500">Manejo de diagnósticos, refacciones, mano de obra y facturación transaccional</p>
               </div>
               <button
                 onClick={() => setModalNuevaOrden(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm text-sm"
+                className="pro-btn-crimson flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm shadow-sm cursor-pointer"
               >
                 <Plus className="w-4 h-4" /> Nueva Orden
               </button>
             </div>
 
             {/* Filtros y Buscador */}
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative">
                 <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Buscar por folio, placa o cliente..."
+                  placeholder="Buscar por folio, placas o cliente..."
                   value={searchOrdenes}
                   onChange={(e) => setSearchOrdenes(e.target.value)}
                   onKeyUp={(e) => e.key === 'Enter' && cargarOrdenes()}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pro-input w-full pl-10 pr-4 py-2.5 text-sm"
                 />
               </div>
               <select
                 value={filtroEstadoOrden}
-                onChange={(e) => { setFiltroEstadoOrden(e.target.value); setTimeout(cargarOrdenes, 50); }}
-                className="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none"
+                onChange={(e) => {
+                  setFiltroEstadoOrden(e.target.value);
+                  setTimeout(cargarOrdenes, 50);
+                }}
+                className="pro-input px-4 py-2.5 text-sm cursor-pointer"
               >
                 <option value="">Todos los estados</option>
                 <option value="programada">Programada</option>
@@ -645,83 +868,107 @@ export default function App() {
             </div>
 
             {/* Tabla de Órdenes */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-400 font-semibold">
-                  <tr>
-                    <th className="px-6 py-3">Folio</th>
-                    <th className="px-6 py-3">Vehículo / Placa</th>
-                    <th className="px-6 py-3">Cliente</th>
-                    <th className="px-6 py-3">Mecánico</th>
-                    <th className="px-6 py-3">Estado</th>
-                    <th className="px-6 py-3 text-right">Saldo Pendiente</th>
-                    <th className="px-6 py-3 text-center">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {ordenesData.datos.map((o) => (
-                    <tr key={o.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-3.5 font-bold text-blue-600">{o.folio}</td>
-                      <td className="px-6 py-3.5">{o.marca} {o.modelo} <span className="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">{o.placas}</span></td>
-                      <td className="px-6 py-3.5">{o.cliente_nombre}</td>
-                      <td className="px-6 py-3.5">{o.mecanico_nombre || 'Sin asignar'}</td>
-                      <td className="px-6 py-3.5">
-                        <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
-                          o.estado === 'entregada' ? 'bg-emerald-100 text-emerald-700' :
-                          o.estado === 'completada' ? 'bg-blue-100 text-blue-700' :
-                          o.estado === 'en_reparacion' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          {o.estado}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3.5 text-right font-bold text-slate-800">
-                        ${o.saldo ? parseFloat(o.saldo).toFixed(2) : parseFloat(o.total).toFixed(2)}
-                      </td>
-                      <td className="px-6 py-3.5 text-center">
-                        <button
-                          onClick={() => verDetalleOrden(o.id)}
-                          className="px-3 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-semibold text-slate-700 transition"
-                        >
-                          Ver Detalle
-                        </button>
-                      </td>
+            <div className="pro-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-600">
+                  <thead className="bg-slate-50 text-[11px] uppercase text-slate-500 font-bold border-b border-slate-100">
+                    <tr>
+                      <th className="px-6 py-3.5">Folio</th>
+                      <th className="px-6 py-3.5">Vehículo / Placa</th>
+                      <th className="px-6 py-3.5">Cliente</th>
+                      <th className="px-6 py-3.5">Mecánico</th>
+                      <th className="px-6 py-3.5">Estado</th>
+                      <th className="px-6 py-3.5 text-right">Saldo Pendiente</th>
+                      <th className="px-6 py-3.5 text-center">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {ordenesData.datos.map((o) => (
+                      <tr key={o.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-6 py-3.5 font-mono font-bold text-rose-600">{o.folio}</td>
+                        <td className="px-6 py-3.5">
+                          <span className="font-semibold text-slate-800">{o.marca} {o.modelo}</span>{' '}
+                          <span className="license-plate ml-1 text-xs">{o.placas}</span>
+                        </td>
+                        <td className="px-6 py-3.5 text-slate-700">{o.cliente_nombre}</td>
+                        <td className="px-6 py-3.5 text-slate-600">{o.mecanico_nombre || 'Sin asignar'}</td>
+                        <td className="px-6 py-3.5">{getEstadoBadge(o.estado)}</td>
+                        <td className="px-6 py-3.5 text-right font-bold">
+                          {parseFloat(o.saldo || o.total) <= 0 ? (
+                            <span className="text-emerald-600">$0.00 Liquidado</span>
+                          ) : (
+                            <span className="text-rose-600">
+                              ${parseFloat(o.saldo || o.total).toFixed(2)}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-3.5 text-center">
+                          <button
+                            onClick={() => verDetalleOrden(o.id)}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-rose-600 hover:text-white rounded-lg text-xs font-semibold text-slate-700 transition cursor-pointer"
+                          >
+                            Ver Detalle
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {ordenesData.datos.length === 0 && (
+                      <tr>
+                        <td colSpan="7" className="px-6 py-8 text-center text-slate-400">
+                          No se encontraron órdenes de servicio con los filtros aplicados.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-        {/* MODAL DETALLE DE ORDEN (TRANSACCIÓN Y COBRO) */}
+        {/* MODAL DETALLE DE ORDEN (TRANSACCIÓN, REFACCIONES Y COBRANZA) */}
         {ordenSeleccionada && detalleOrden && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-6">
-              <div className="flex items-center justify-between border-b pb-4">
+          <div className="fixed inset-0 bg-zinc-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl border border-slate-200 space-y-6">
+              {/* Header Modal */}
+              <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                 <div>
-                  <h2 className="text-xl font-black text-slate-800">Orden {detalleOrden.orden.folio}</h2>
-                  <p className="text-xs text-slate-500">
-                    {detalleOrden.orden.marca} {detalleOrden.orden.modelo} ({detalleOrden.orden.placas}) • Cliente: {detalleOrden.orden.cliente_nombre}
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-black text-slate-900 font-mono tracking-tight">
+                      Orden {detalleOrden.orden.folio}
+                    </h2>
+                    {getEstadoBadge(detalleOrden.orden.estado)}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {detalleOrden.orden.marca} {detalleOrden.orden.modelo} (
+                    <span className="font-mono font-bold text-slate-700">{detalleOrden.orden.placas}</span>) • Cliente: {detalleOrden.orden.cliente_nombre}
                   </p>
                 </div>
-                <button onClick={() => setOrdenSeleccionada(null)} className="p-2 text-slate-400 hover:text-slate-600">
+                <button
+                  onClick={() => setOrdenSeleccionada(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Refacciones asignadas a la orden */}
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-sm font-bold text-slate-800">Refacciones / Piezas Utilizadas</h4>
-                  {detalleOrden.orden.estado !== 'entregada' && (
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
+                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                    Refacciones / Piezas Utilizadas
+                  </h4>
+                  {detalleOrden.orden.estado !== 'entregada' && detalleOrden.orden.estado !== 'completada' && (
                     <div className="flex gap-2">
                       <select
                         onChange={(e) => setAgregarRefData({ ...agregarRefData, refaccion_id: e.target.value })}
-                        className="text-xs border p-1 rounded"
+                        className="pro-input text-xs px-2 py-1.5"
                       >
                         <option value="">Seleccionar Refacción</option>
                         {refaccionesData.datos.map((r) => (
-                          <option key={r.id} value={r.id}>{r.nombre} (Stock: {r.stock}) - ${r.precio_publico}</option>
+                          <option key={r.id} value={r.id}>
+                            {r.nombre} (Stock: {r.stock}) - ${r.precio_publico}
+                          </option>
                         ))}
                       </select>
                       <input
@@ -729,25 +976,31 @@ export default function App() {
                         min="1"
                         value={agregarRefData.cantidad}
                         onChange={(e) => setAgregarRefData({ ...agregarRefData, cantidad: parseInt(e.target.value) })}
-                        className="w-16 text-xs border p-1 rounded"
+                        className="pro-input w-16 text-xs px-2 py-1.5"
                       />
                       <button
                         onClick={handleAgregarRefaccionAOrden}
-                        className="px-2 py-1 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700"
+                        className="pro-btn-crimson px-3 py-1.5 text-xs rounded-lg cursor-pointer"
                       >
                         + Asignar
                       </button>
                     </div>
                   )}
                 </div>
-                <div className="bg-slate-50 rounded-lg p-3 text-xs">
+
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 text-xs">
                   {detalleOrden.refacciones.length === 0 ? (
-                    <p className="text-slate-400 italic">No hay refacciones asignadas a esta orden.</p>
+                    <p className="text-slate-400 italic py-2 text-center">
+                      No hay refacciones asignadas a esta orden de servicio.
+                    </p>
                   ) : (
                     detalleOrden.refacciones.map((r) => (
-                      <div key={r.id} className="flex justify-between py-1 border-b last:border-0">
-                        <span>{r.nombre} (x{r.cantidad})</span>
-                        <span className="font-semibold">${parseFloat(r.importe).toFixed(2)}</span>
+                      <div key={r.id} className="flex justify-between items-center py-2 border-b border-slate-200/60 last:border-0">
+                        <div>
+                          <span className="font-semibold text-slate-800">{r.nombre}</span>{' '}
+                          <span className="text-slate-400">×{r.cantidad}</span>
+                        </div>
+                        <span className="font-bold text-slate-900">${parseFloat(r.importe).toFixed(2)}</span>
                       </div>
                     ))
                   )}
@@ -756,26 +1009,38 @@ export default function App() {
 
               {/* Botón de Cierre Transaccional (ACID) */}
               {detalleOrden.orden.estado !== 'completada' && detalleOrden.orden.estado !== 'entregada' && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+                <div className="p-4 bg-zinc-950 text-white rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-zinc-800">
                   <div>
-                    <h4 className="text-sm font-bold text-blue-900">Finalizar Orden & Actualizar Inventario</h4>
-                    <p className="text-xs text-blue-700">Ejecuta la transacción SQL: descuenta stock, fija importes y bloquea para entrega.</p>
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-rose-500" />
+                      <h4 className="text-sm font-bold text-white">Finalizar Orden & Actualizar Inventario</h4>
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      Transacción SQL atómica: descuenta existencias en almacén y congela los precios finales.
+                    </p>
                   </div>
                   <button
                     onClick={handleFinalizarOrden}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow"
+                    className="pro-btn-crimson px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap cursor-pointer shadow-md"
                   >
                     Finalizar y Facturar (ACID)
                   </button>
                 </div>
               )}
 
-              {/* Cobranza y Pagos */}
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center mb-3">
+              {/* Cobranza y Liquidación */}
+              <div className="border-t border-slate-100 pt-4">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-3">
                   <div>
-                    <h4 className="text-sm font-bold text-slate-800">Pagos y Liquidación</h4>
-                    <p className="text-xs text-slate-500">Saldo pendiente actual: <b className="text-slate-800">${parseFloat(detalleOrden.orden.saldo || detalleOrden.orden.total).toFixed(2)}</b></p>
+                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                      Cobranza y Liquidación
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Saldo restante actual:{' '}
+                      <b className="text-rose-600 text-sm">
+                        ${parseFloat(detalleOrden.orden.saldo || detalleOrden.orden.total).toFixed(2)}
+                      </b>
+                    </p>
                   </div>
                   {parseFloat(detalleOrden.orden.saldo || detalleOrden.orden.total) > 0 && (
                     <div className="flex gap-2">
@@ -784,12 +1049,12 @@ export default function App() {
                         placeholder="Monto $"
                         value={montoPago}
                         onChange={(e) => setMontoPago(e.target.value)}
-                        className="w-24 text-xs border p-1 rounded"
+                        className="pro-input w-28 text-xs px-2.5 py-1.5"
                       />
                       <select
                         value={metodoPago}
                         onChange={(e) => setMetodoPago(e.target.value)}
-                        className="text-xs border p-1 rounded"
+                        className="pro-input text-xs px-2.5 py-1.5"
                       >
                         <option value="efectivo">Efectivo</option>
                         <option value="tarjeta">Tarjeta</option>
@@ -797,7 +1062,7 @@ export default function App() {
                       </select>
                       <button
                         onClick={handleRegistrarPago}
-                        className="px-3 py-1 bg-emerald-600 text-white font-semibold text-xs rounded hover:bg-emerald-700"
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition cursor-pointer shadow-xs"
                       >
                         Cobrar
                       </button>
@@ -805,13 +1070,22 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="space-y-1">
+                {/* Historial de pagos */}
+                <div className="space-y-1.5">
                   {detalleOrden.pagos.map((p) => (
-                    <div key={p.id} className="text-xs flex justify-between bg-slate-50 p-2 rounded">
-                      <span>Folio: <b>{p.folio}</b> ({p.metodo})</span>
+                    <div
+                      key={p.id}
+                      className="text-xs flex justify-between items-center bg-slate-50 border border-slate-100 p-2.5 rounded-xl"
+                    >
+                      <span className="text-slate-700">
+                        Folio Pago: <b className="font-mono text-rose-600">{p.folio}</b> ({p.metodo})
+                      </span>
                       <span className="font-bold text-emerald-700">+${parseFloat(p.monto).toFixed(2)}</span>
                     </div>
                   ))}
+                  {detalleOrden.pagos.length === 0 && (
+                    <p className="text-xs text-slate-400 italic py-1">No se han registrado abonos ni pagos aún.</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -820,49 +1094,55 @@ export default function App() {
 
         {/* MODAL CREAR NUEVA ORDEN */}
         {modalNuevaOrden && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">Nueva Orden de Servicio</h3>
-              <form onSubmit={handleCrearOrden} className="space-y-3">
+          <div className="fixed inset-0 bg-zinc-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+              <div className="flex items-center justify-between mb-4 border-b pb-3">
+                <h3 className="text-lg font-bold text-slate-900">Nueva Orden de Servicio</h3>
+                <button onClick={() => setModalNuevaOrden(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleCrearOrden} className="space-y-3.5">
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">ID del Vehículo (Registrado)</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">ID del Vehículo Registrado</label>
                   <input
                     type="number"
                     required
                     placeholder="Ej. 1"
                     value={nuevaOrden.vehiculo_id}
                     onChange={(e) => setNuevaOrden({ ...nuevaOrden, vehiculo_id: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg"
+                    className="pro-input w-full text-sm p-2.5"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">Motivo / Síntomas</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Motivo / Síntomas Reportados</label>
                   <textarea
                     required
-                    placeholder="Falla en frenos, ruido en motor, etc."
+                    rows="3"
+                    placeholder="Falla en frenos, ruido en motor, servicio de afinación..."
                     value={nuevaOrden.motivo}
                     onChange={(e) => setNuevaOrden({ ...nuevaOrden, motivo: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg"
+                    className="pro-input w-full text-sm p-2.5"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">Kilometraje de Entrada</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Kilometraje de Entrada</label>
                   <input
                     type="number"
                     value={nuevaOrden.km_entrada}
                     onChange={(e) => setNuevaOrden({ ...nuevaOrden, km_entrada: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg"
+                    className="pro-input w-full text-sm p-2.5"
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-3">
                   <button
                     type="button"
                     onClick={() => setModalNuevaOrden(false)}
-                    className="px-4 py-2 border rounded-lg text-sm"
+                    className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                   >
                     Cancelar
                   </button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg text-sm">
+                  <button type="submit" className="pro-btn-crimson px-5 py-2 rounded-xl text-sm cursor-pointer">
                     Crear Orden
                   </button>
                 </div>
@@ -871,17 +1151,19 @@ export default function App() {
           </div>
         )}
 
-        {/* VISTA 3: CLIENTES Y VEHÍCULOS */}
+        {/* =========================================================================
+            VISTA 3: CLIENTES Y VEHÍCULOS
+           ========================================================================= */}
         {activeTab === 'clientes' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900">Directorio de Clientes</h1>
-                <p className="text-sm text-slate-500">Gestión de datos de contacto y parque vehicular vinculado</p>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Directorio de Clientes</h1>
+                <p className="text-sm text-slate-500">Gestión de contactos y vehículos vinculados al taller</p>
               </div>
               <button
                 onClick={() => setModalCliente(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm text-sm"
+                className="pro-btn-crimson flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm shadow-sm cursor-pointer"
               >
                 <Plus className="w-4 h-4" /> Nuevo Cliente
               </button>
@@ -891,98 +1173,120 @@ export default function App() {
               <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
               <input
                 type="text"
-                placeholder="Buscar por nombre, teléfono o correo..."
+                placeholder="Buscar por nombre, teléfono o correo (búsqueda con debounce)..."
                 value={searchClientes}
                 onChange={(e) => setSearchClientes(e.target.value)}
-                onKeyUp={(e) => e.key === 'Enter' && cargarClientes()}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="pro-input w-full pl-10 pr-4 py-2.5 text-sm"
               />
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-400 font-semibold">
-                  <tr>
-                    <th className="px-6 py-3">Nombre</th>
-                    <th className="px-6 py-3">Teléfono</th>
-                    <th className="px-6 py-3">Email</th>
-                    <th className="px-6 py-3">RFC</th>
-                    <th className="px-6 py-3 text-center">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {clientesData.datos.map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-3.5 font-bold text-slate-800">{c.nombre}</td>
-                      <td className="px-6 py-3.5">{c.telefono}</td>
-                      <td className="px-6 py-3.5">{c.email || 'N/A'}</td>
-                      <td className="px-6 py-3.5 font-mono text-xs">{c.rfc || 'N/A'}</td>
-                      <td className="px-6 py-3.5 text-center">
-                        <button
-                          onClick={() => setModalVehiculo(c.id)}
-                          className="px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-semibold transition"
-                        >
-                          + Vincular Auto
-                        </button>
-                      </td>
+            <div className="pro-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-600">
+                  <thead className="bg-slate-50 text-[11px] uppercase text-slate-500 font-bold border-b border-slate-100">
+                    <tr>
+                      <th className="px-6 py-3.5">Nombre</th>
+                      <th className="px-6 py-3.5">Teléfono</th>
+                      <th className="px-6 py-3.5">Email</th>
+                      <th className="px-6 py-3.5">RFC</th>
+                      <th className="px-6 py-3.5 text-center">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {clientesData.datos.map((c) => (
+                      <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-6 py-3.5 font-bold text-slate-900 flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-rose-50 text-rose-600 font-bold text-xs flex items-center justify-center border border-rose-100">
+                            {c.nombre.charAt(0)}
+                          </div>
+                          {c.nombre}
+                        </td>
+                        <td className="px-6 py-3.5 text-slate-700">{c.telefono}</td>
+                        <td className="px-6 py-3.5 text-slate-600">{c.email || 'N/A'}</td>
+                        <td className="px-6 py-3.5 font-mono text-xs text-slate-500">{c.rfc || 'N/A'}</td>
+                        <td className="px-6 py-3.5 text-center">
+                          <button
+                            onClick={() => setModalVehiculo(c.id)}
+                            className="px-3 py-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-200 rounded-lg text-xs font-semibold transition cursor-pointer"
+                          >
+                            + Vincular Auto
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {clientesData.datos.length === 0 && (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center text-slate-400">
+                          No se encontraron clientes registrados con este criterio de búsqueda.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
         {/* MODAL CREAR CLIENTE */}
         {modalCliente && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">Registrar Nuevo Cliente</h3>
-              <form onSubmit={handleCrearCliente} className="space-y-3">
+          <div className="fixed inset-0 bg-zinc-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+              <div className="flex items-center justify-between mb-4 border-b pb-3">
+                <h3 className="text-lg font-bold text-slate-900">Registrar Nuevo Cliente</h3>
+                <button onClick={() => setModalCliente(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleCrearCliente} className="space-y-3.5">
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">Nombre Completo</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Nombre Completo</label>
                   <input
                     type="text"
                     required
                     value={nuevoCliente.nombre}
                     onChange={(e) => setNuevoCliente({ ...nuevoCliente, nombre: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg"
+                    className="pro-input w-full text-sm p-2.5"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">Teléfono</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Teléfono</label>
                   <input
                     type="text"
                     required
                     value={nuevoCliente.telefono}
                     onChange={(e) => setNuevoCliente({ ...nuevoCliente, telefono: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg"
+                    className="pro-input w-full text-sm p-2.5"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">Email</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Email</label>
                   <input
                     type="email"
                     value={nuevoCliente.email}
                     onChange={(e) => setNuevoCliente({ ...nuevoCliente, email: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg"
+                    className="pro-input w-full text-sm p-2.5"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">RFC (Opcional)</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">RFC (Opcional)</label>
                   <input
                     type="text"
                     value={nuevoCliente.rfc}
                     onChange={(e) => setNuevoCliente({ ...nuevoCliente, rfc: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg"
+                    className="pro-input w-full text-sm p-2.5 font-mono uppercase"
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-3">
-                  <button type="button" onClick={() => setModalCliente(false)} className="px-4 py-2 border rounded-lg text-sm">
+                  <button
+                    type="button"
+                    onClick={() => setModalCliente(false)}
+                    className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                  >
                     Cancelar
                   </button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg text-sm">
-                    Guardar
+                  <button type="submit" className="pro-btn-crimson px-5 py-2 rounded-xl text-sm cursor-pointer">
+                    Guardar Cliente
                   </button>
                 </div>
               </form>
@@ -992,12 +1296,17 @@ export default function App() {
 
         {/* MODAL VINCULAR VEHÍCULO */}
         {modalVehiculo && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">Vincular Vehículo al Cliente</h3>
-              <form onSubmit={handleCrearVehiculo} className="space-y-3">
+          <div className="fixed inset-0 bg-zinc-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+              <div className="flex items-center justify-between mb-4 border-b pb-3">
+                <h3 className="text-lg font-bold text-slate-900">Vincular Vehículo al Cliente</h3>
+                <button onClick={() => setModalVehiculo(null)} className="text-slate-400 hover:text-slate-600">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleCrearVehiculo} className="space-y-3.5">
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">Placas</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Placas (Auto-mayúsculas)</label>
                   <input
                     type="text"
                     required
@@ -1005,57 +1314,65 @@ export default function App() {
                     placeholder="ABC-123-A"
                     value={nuevoVehiculo.placas}
                     onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, placas: e.target.value.toUpperCase() })}
-                    className="w-full text-sm border p-2 rounded-lg font-mono uppercase"
+                    className="pro-input w-full text-sm p-2.5 font-mono uppercase"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">Número VIN (17 caracteres, opcional)</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
+                    Número VIN (Exactamente 17 caracteres)
+                  </label>
                   <input
                     type="text"
                     maxLength={17}
                     placeholder="1HGCR2F83HA123456"
                     value={nuevoVehiculo.vin || ''}
                     onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, vin: e.target.value.toUpperCase() })}
-                    className="w-full text-sm border p-2 rounded-lg font-mono uppercase"
+                    className="pro-input w-full text-sm p-2.5 font-mono uppercase"
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-600">Marca</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Toyota, Ford, etc."
-                    value={nuevoVehiculo.marca}
-                    onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, marca: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">Marca</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Toyota, Ford..."
+                      value={nuevoVehiculo.marca}
+                      onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, marca: e.target.value })}
+                      className="pro-input w-full text-sm p-2.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">Modelo</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Corolla, Ranger..."
+                      value={nuevoVehiculo.modelo}
+                      onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, modelo: e.target.value })}
+                      className="pro-input w-full text-sm p-2.5"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-600">Modelo</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Corolla, Fiesta, etc."
-                    value={nuevoVehiculo.modelo}
-                    onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, modelo: e.target.value })}
-                    className="w-full text-sm border p-2 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-600">Año</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Año</label>
                   <input
                     type="number"
                     required
                     value={nuevoVehiculo.anio}
                     onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, anio: parseInt(e.target.value) })}
-                    className="w-full text-sm border p-2 rounded-lg"
+                    className="pro-input w-full text-sm p-2.5"
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-3">
-                  <button type="button" onClick={() => setModalVehiculo(null)} className="px-4 py-2 border rounded-lg text-sm">
+                  <button
+                    type="button"
+                    onClick={() => setModalVehiculo(null)}
+                    className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                  >
                     Cancelar
                   </button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg text-sm">
+                  <button type="submit" className="pro-btn-crimson px-5 py-2 rounded-xl text-sm cursor-pointer">
                     Guardar Vehículo
                   </button>
                 </div>
@@ -1064,26 +1381,28 @@ export default function App() {
           </div>
         )}
 
-        {/* VISTA 4: INVENTARIO / REFACCIONES */}
+        {/* =========================================================================
+            VISTA 4: INVENTARIO / REFACCIONES
+           ========================================================================= */}
         {activeTab === 'inventario' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900">Catálogo de Repuestos & Refacciones</h1>
-                <p className="text-sm text-slate-500">Control de existencias, alerta de stock mínimo y precios</p>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Catálogo de Repuestos & Refacciones</h1>
+                <p className="text-sm text-slate-500">Control de existencias, alerta de stock mínimo y precios de lista</p>
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative">
                 <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Buscar por SKU, nombre o marca..."
+                  placeholder="Buscar por SKU, descripción o marca..."
                   value={searchRefacciones}
                   onChange={(e) => setSearchRefacciones(e.target.value)}
                   onKeyUp={(e) => e.key === 'Enter' && cargarRefacciones()}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pro-input w-full pl-10 pr-4 py-2.5 text-sm"
                 />
               </div>
               <button
@@ -1091,79 +1410,102 @@ export default function App() {
                   setFiltroStockBajo(!filtroStockBajo);
                   setTimeout(cargarRefacciones, 50);
                 }}
-                className={`px-4 py-2.5 rounded-lg border text-sm font-semibold flex items-center gap-2 transition ${
-                  filtroStockBajo ? 'bg-amber-500 text-white border-amber-600' : 'bg-white text-slate-700 border-slate-200'
+                className={`px-4 py-2.5 rounded-xl border text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer ${
+                  filtroStockBajo
+                    ? 'bg-amber-600 text-white border-amber-700 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`}
               >
                 <AlertTriangle className="w-4 h-4" /> Alertas Stock Bajo
               </button>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-400 font-semibold">
-                  <tr>
-                    <th className="px-6 py-3">SKU</th>
-                    <th className="px-6 py-3">Nombre Refacción</th>
-                    <th className="px-6 py-3">Marca</th>
-                    <th className="px-6 py-3">Categoría</th>
-                    <th className="px-6 py-3 text-center">Stock</th>
-                    <th className="px-6 py-3 text-right">Precio Público</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {refaccionesData.datos.map((r) => (
-                    <tr key={r.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-3.5 font-mono text-xs font-bold text-blue-600">{r.sku}</td>
-                      <td className="px-6 py-3.5 font-semibold text-slate-800">{r.nombre}</td>
-                      <td className="px-6 py-3.5">{r.marca || 'Genérica'}</td>
-                      <td className="px-6 py-3.5">{r.categoria_nombre}</td>
-                      <td className="px-6 py-3.5 text-center">
-                        <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
-                          r.stock <= r.stock_minimo ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
-                        }`}>
-                          {r.stock} uds {r.stock <= r.stock_minimo && '⚠️ Bajo'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3.5 text-right font-bold text-slate-800">${parseFloat(r.precio_publico).toFixed(2)}</td>
+            <div className="pro-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-600">
+                  <thead className="bg-slate-50 text-[11px] uppercase text-slate-500 font-bold border-b border-slate-100">
+                    <tr>
+                      <th className="px-6 py-3.5">SKU</th>
+                      <th className="px-6 py-3.5">Nombre Refacción</th>
+                      <th className="px-6 py-3.5">Marca</th>
+                      <th className="px-6 py-3.5">Categoría</th>
+                      <th className="px-6 py-3.5 text-center">Stock</th>
+                      <th className="px-6 py-3.5 text-right">Precio Público</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {refaccionesData.datos.map((r) => (
+                      <tr key={r.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-6 py-3.5 font-mono text-xs font-bold text-rose-600">{r.sku}</td>
+                        <td className="px-6 py-3.5 font-semibold text-slate-900">{r.nombre}</td>
+                        <td className="px-6 py-3.5 text-slate-600">{r.marca || 'Genérica'}</td>
+                        <td className="px-6 py-3.5 text-slate-600">{r.categoria_nombre}</td>
+                        <td className="px-6 py-3.5 text-center">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full ${
+                              r.stock <= r.stock_minimo
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            }`}
+                          >
+                            {r.stock} uds {r.stock <= r.stock_minimo && '⚠️ Crítico'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3.5 text-right font-bold text-slate-900">
+                          ${parseFloat(r.precio_publico).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                    {refaccionesData.datos.length === 0 && (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-8 text-center text-slate-400">
+                          No se encontraron piezas en el inventario con los criterios seleccionados.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-        {/* VISTA 5: REPORTES POR RANGO DE FECHAS (Req #23, #25) */}
+        {/* =========================================================================
+            VISTA 5: REPORTES POR RANGO DE FECHAS
+           ========================================================================= */}
         {activeTab === 'reportes' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900">Reportes Financieros y de Ventas</h1>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Reportes Financieros y de Ventas</h1>
               <p className="text-sm text-slate-500">Filtrado dinámico por rango de fechas (Fecha Inicial y Fecha Final)</p>
             </div>
 
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-end gap-4">
+            <div className="pro-card p-5 flex flex-wrap items-end gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Fecha Inicial</label>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                  Fecha Inicial
+                </label>
                 <input
                   type="date"
                   value={fechaInicio}
                   onChange={(e) => setFechaInicio(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 border rounded-lg text-sm"
+                  className="pro-input px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Fecha Final</label>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                  Fecha Final
+                </label>
                 <input
                   type="date"
                   value={fechaFin}
                   onChange={(e) => setFechaFin(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 border rounded-lg text-sm"
+                  className="pro-input px-3 py-2 text-sm"
                 />
               </div>
               <button
                 onClick={cargarReporte}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-sm"
+                className="pro-btn-crimson px-5 py-2.5 rounded-xl text-sm cursor-pointer shadow-sm"
               >
                 Generar Reporte
               </button>
@@ -1171,45 +1513,68 @@ export default function App() {
 
             {reporteVentas && (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-5 rounded-xl border border-slate-200">
-                    <span className="text-xs uppercase text-slate-400 font-bold">Total Recaudado en el Periodo</span>
-                    <h3 className="text-3xl font-black text-emerald-600">${reporteVentas.resumen.totalRecaudado.toFixed(2)}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="pro-card p-5">
+                    <span className="text-xs uppercase text-slate-500 font-bold tracking-wider">
+                      Total Recaudado en el Periodo
+                    </span>
+                    <h3 className="text-3xl font-black text-emerald-600 mt-1">
+                      ${reporteVentas.resumen.totalRecaudado.toFixed(2)}
+                    </h3>
                   </div>
-                  <div className="bg-white p-5 rounded-xl border border-slate-200">
-                    <span className="text-xs uppercase text-slate-400 font-bold">Transacciones Realizadas</span>
-                    <h3 className="text-3xl font-black text-slate-800">{reporteVentas.resumen.totalTransacciones}</h3>
+                  <div className="pro-card p-5">
+                    <span className="text-xs uppercase text-slate-500 font-bold tracking-wider">
+                      Transacciones Realizadas
+                    </span>
+                    <h3 className="text-3xl font-black text-slate-900 mt-1">
+                      {reporteVentas.resumen.totalTransacciones}
+                    </h3>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b">
-                    <h3 className="text-base font-bold text-slate-800">Detalle de Pagos Recibidos</h3>
+                <div className="pro-card overflow-hidden">
+                  <div className="px-6 py-4 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                      Detalle de Pagos Recibidos
+                    </h3>
                   </div>
-                  <table className="w-full text-left text-sm text-slate-600">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-400 font-semibold">
-                      <tr>
-                        <th className="px-6 py-3">Folio Pago</th>
-                        <th className="px-6 py-3">Orden Asociada</th>
-                        <th className="px-6 py-3">Cliente</th>
-                        <th className="px-6 py-3">Método</th>
-                        <th className="px-6 py-3">Fecha y Hora</th>
-                        <th className="px-6 py-3 text-right">Monto</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {reporteVentas.datos.map((p) => (
-                        <tr key={p.id} className="hover:bg-slate-50">
-                          <td className="px-6 py-3 font-bold text-blue-600">{p.folio}</td>
-                          <td className="px-6 py-3">{p.orden_folio}</td>
-                          <td className="px-6 py-3">{p.cliente_nombre}</td>
-                          <td className="px-6 py-3 uppercase text-xs font-semibold">{p.metodo}</td>
-                          <td className="px-6 py-3 text-xs">{new Date(p.fecha_pago).toLocaleString()}</td>
-                          <td className="px-6 py-3 text-right font-bold text-emerald-600">${parseFloat(p.monto).toFixed(2)}</td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-slate-600">
+                      <thead className="bg-slate-50 text-[11px] uppercase text-slate-500 font-bold border-b border-slate-100">
+                        <tr>
+                          <th className="px-6 py-3.5">Folio Pago</th>
+                          <th className="px-6 py-3.5">Orden Asociada</th>
+                          <th className="px-6 py-3.5">Cliente</th>
+                          <th className="px-6 py-3.5">Método</th>
+                          <th className="px-6 py-3.5">Fecha y Hora</th>
+                          <th className="px-6 py-3.5 text-right">Monto</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {reporteVentas.datos.map((p) => (
+                          <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
+                            <td className="px-6 py-3.5 font-mono font-bold text-rose-600">{p.folio}</td>
+                            <td className="px-6 py-3.5 font-mono text-xs">{p.orden_folio}</td>
+                            <td className="px-6 py-3.5 text-slate-800 font-medium">{p.cliente_nombre}</td>
+                            <td className="px-6 py-3.5 uppercase text-xs font-semibold">{p.metodo}</td>
+                            <td className="px-6 py-3.5 text-xs text-slate-500">
+                              {new Date(p.fecha_pago).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-3.5 text-right font-bold text-emerald-600">
+                              +${parseFloat(p.monto).toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                        {reporteVentas.datos.length === 0 && (
+                          <tr>
+                            <td colSpan="6" className="px-6 py-8 text-center text-slate-400">
+                              No hay cobros registrados en el rango de fechas seleccionado.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
