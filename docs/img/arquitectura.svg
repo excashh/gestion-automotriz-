@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 260" width="820" height="260" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="820" height="260" fill="#ffffff"/>
+  <!-- Cliente -->
+  <rect x="20" y="50" width="220" height="150" rx="12" fill="#e0f2fe" stroke="#0369a1" stroke-width="2"/>
+  <text x="130" y="80" text-anchor="middle" font-size="16" font-weight="700" fill="#0c4a6e">Cliente (Frontend)</text>
+  <text x="130" y="108" text-anchor="middle" font-size="13" fill="#0f172a">React + Vite + TailwindCSS</text>
+  <text x="130" y="128" text-anchor="middle" font-size="13" fill="#0f172a">Recharts (gráficas)</text>
+  <text x="130" y="148" text-anchor="middle" font-size="13" fill="#0f172a">Rutas protegidas por rol</text>
+  <text x="130" y="180" text-anchor="middle" font-size="12" font-style="italic" fill="#475569">Hosting: Vercel</text>
+  <!-- API -->
+  <rect x="300" y="50" width="220" height="150" rx="12" fill="#ecfccb" stroke="#4d7c0f" stroke-width="2"/>
+  <text x="410" y="80" text-anchor="middle" font-size="16" font-weight="700" fill="#365314">Servidor (API REST)</text>
+  <text x="410" y="108" text-anchor="middle" font-size="13" fill="#0f172a">Node.js + Express</text>
+  <text x="410" y="128" text-anchor="middle" font-size="13" fill="#0f172a">JWT + bcrypt + roles</text>
+  <text x="410" y="148" text-anchor="middle" font-size="13" fill="#0f172a">Reglas de negocio / historial</text>
+  <text x="410" y="180" text-anchor="middle" font-size="12" font-style="italic" fill="#475569">Hosting: Render</text>
+  <!-- BD -->
+  <rect x="580" y="50" width="220" height="150" rx="12" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+  <text x="690" y="80" text-anchor="middle" font-size="16" font-weight="700" fill="#78350f">Base de datos</text>
+  <text x="690" y="108" text-anchor="middle" font-size="13" fill="#0f172a">PostgreSQL 16 (3FN)</text>
+  <text x="690" y="128" text-anchor="middle" font-size="13" fill="#0f172a">Transacciones ACID</text>
+  <text x="690" y="148" text-anchor="middle" font-size="13" fill="#0f172a">Tabla de auditoría</text>
+  <text x="690" y="180" text-anchor="middle" font-size="12" font-style="italic" fill="#475569">Hosting: Neon</text>
+  <!-- Flechas -->
+  <line x1="240" y1="110" x2="298" y2="110" stroke="#334155" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="300" y1="140" x2="242" y2="140" stroke="#334155" stroke-width="2" marker-end="url(#ar)"/>
+  <text x="270" y="100" text-anchor="middle" font-size="11" fill="#334155">HTTPS/JSON</text>
+  <line x1="520" y1="110" x2="578" y2="110" stroke="#334155" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="580" y1="140" x2="522" y2="140" stroke="#334155" stroke-width="2" marker-end="url(#ar)"/>
+  <text x="550" y="100" text-anchor="middle" font-size="11" fill="#334155">SQL (pg)</text>
+  <text x="410" y="240" text-anchor="middle" font-size="12" fill="#475569">Control de versiones y seguimiento: GitHub (repositorio, Issues, Projects, Pull Requests)</text>
+</svg>
