@@ -22,7 +22,11 @@ import {
   Mail,
   Hash,
   Clock,
-  Check
+  Check,
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldCheck
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -61,6 +65,7 @@ export default function App() {
   const [loginError, setLoginError] = useState('');
   const [loadingLogin, setLoadingLogin] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [capsLockActive, setCapsLockActive] = useState(false);
 
   // Estados de datos
   const [dashboardData, setDashboardData] = useState(null);
@@ -324,81 +329,188 @@ export default function App() {
   };
 
   // =========================================================================
-  // 1. PANTALLA DE LOGIN - ESTILO SAAS CLEAN PRO AUTOMOTRIZ (CRIMSON SPORT)
+  // 1. PANTALLA DE LOGIN - SPLIT-SCREEN STUDIO & FORMULARIO CLARO PRO
   // =========================================================================
   if (!user) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col justify-center items-center p-4 relative overflow-hidden selection:bg-rose-500 selection:text-white">
-        {/* Fondo sutil con acabado de alta tecnología */}
-        <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none"></div>
-        <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-rose-950/25 via-zinc-950/50 to-transparent pointer-events-none"></div>
+      <div className="min-h-screen bg-white flex flex-col lg:flex-row font-sans selection:bg-rose-500 selection:text-white">
+        {/* =========================================================================
+            PANEL IZQUIERDO: ATMÓSFERA AUTOMOTRIZ DE MARCA & TELEMETRÍA (STUDIO DARK)
+           ========================================================================= */}
+        <div className="hidden lg:flex lg:w-1/2 xl:w-5/12 bg-zinc-950 text-white p-12 flex-col justify-between relative overflow-hidden border-r border-zinc-800/80">
+          {/* Fondo sutil con cuadrícula técnica y gradiente carmesí ambiental */}
+          <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:22px_22px] opacity-30 pointer-events-none"></div>
+          <div className="absolute -top-28 -left-28 w-96 h-96 bg-rose-600/20 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute bottom-0 right-0 w-80 h-80 bg-rose-950/25 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative w-full max-w-md z-10">
-          {/* Logo y Encabezado */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-600 to-rose-800 text-white shadow-xl shadow-rose-950/60 ring-1 ring-white/20 mb-4">
-              <Wrench className="w-7 h-7" />
+          {/* Logo Superior */}
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-500 via-rose-600 to-rose-700 text-white flex items-center justify-center shadow-lg shadow-rose-950/60 ring-1 ring-white/20">
+              <Wrench className="w-6 h-6" />
             </div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center justify-center gap-2">
-              Auto<span className="text-rose-500">Pro</span>
-            </h1>
-            <p className="text-sm text-zinc-400 mt-1">
-              Plataforma de Control Operativo y Servicio Automotriz
-            </p>
+            <div>
+              <span className="text-xl font-extrabold tracking-tight text-white">
+                Auto<span className="text-rose-500">Pro</span>
+              </span>
+              <span className="ml-2.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                PRO v1.2
+              </span>
+            </div>
           </div>
 
-          {/* Tarjeta de Inicio de Sesión */}
-          <div className="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-8 shadow-2xl backdrop-blur-xl">
+          {/* Contenido Central: Mensaje y Telemetría Operativa */}
+          <div className="relative z-10 my-auto py-8 space-y-7">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Motor Transaccional ACID en línea</span>
+            </div>
+
+            <div className="space-y-3">
+              <h2 className="text-3xl xl:text-4xl font-extrabold tracking-tight text-white leading-tight">
+                Control operativo de alto rendimiento para tu taller mecánico.
+              </h2>
+              <p className="text-sm xl:text-base text-zinc-400 max-w-md leading-relaxed">
+                Centraliza órdenes de servicio, historial vehicular, piezas en almacén y cobranza en una sola consola ágil.
+              </p>
+            </div>
+
+            {/* Tarjetas flotantes estilo telemetría de taller */}
+            <div className="space-y-3 pt-2">
+              <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800/80 backdrop-blur-md flex items-center justify-between shadow-xl">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                    <Car className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-white">Flujo de Órdenes de Trabajo</p>
+                    <p className="text-[11px] text-zinc-400">Diagnóstico, reparación y entrega controlada</p>
+                  </div>
+                </div>
+                <span className="text-xs font-mono font-bold text-rose-400 bg-rose-950/50 px-2 py-1 rounded-lg border border-rose-900/60">
+                  En Vivo
+                </span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800/80 backdrop-blur-md flex items-center justify-between shadow-xl">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-white">Integridad de Inventario & Pagos</p>
+                    <p className="text-[11px] text-zinc-400">Protección contra sobreventas y descuadre</p>
+                  </div>
+                </div>
+                <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/50 px-2 py-1 rounded-lg border border-emerald-900/60">
+                  Auditado
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pie del Panel Izquierdo */}
+          <div className="relative z-10 pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500">
+            <span>© 2026 AutoPro Systems</span>
+            <span>Equipo 05 • Gestión Automotriz</span>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            PANEL DERECHO: FORMULARIO CLARO & LIMPIO (CLEAN SAAS PRO)
+           ========================================================================= */}
+        <div className="flex-1 bg-slate-50/60 lg:bg-white flex items-center justify-center p-6 sm:p-12 lg:p-16">
+          <div className="w-full max-w-md space-y-7">
+            {/* Cabecera del formulario (visible en móvil con logo) */}
+            <div>
+              <div className="lg:hidden flex items-center gap-2.5 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-rose-700 text-white flex items-center justify-center shadow-md">
+                  <Wrench className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-lg font-black text-slate-900">
+                    Auto<span className="text-rose-600">Pro</span>
+                  </span>
+                  <p className="text-[11px] text-slate-400">Sistema Automotriz</p>
+                </div>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                Iniciar Sesión
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Ingresa tus credenciales para acceder al sistema.
+              </p>
+            </div>
+
+            {/* Alerta de Error */}
             {loginError && (
-              <div className="mb-5 p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm rounded-xl flex items-center gap-2.5">
-                <AlertTriangle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+              <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl flex items-center gap-2.5 animate-in fade-in">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0 text-rose-600" />
                 <span>{loginError}</span>
               </div>
             )}
 
+            {/* Formulario */}
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Correo Electrónico
                 </label>
-                <input
-                  type="email"
-                  required
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="usuario@autopro.com"
-                  className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all"
-                />
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="email"
+                    required
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="usuario@autopro.com"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-rose-600 focus:ring-3 focus:ring-rose-500/15 transition-all shadow-xs"
+                  />
+                </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                     Contraseña
                   </label>
+                </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    id="login-password"
+                    type={showLoginPassword ? 'text' : 'password'}
+                    required
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    onKeyDown={(e) => setCapsLockActive(e.getModifierState && e.getModifierState('CapsLock'))}
+                    onKeyUp={(e) => setCapsLockActive(e.getModifierState && e.getModifierState('CapsLock'))}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-11 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-rose-600 focus:ring-3 focus:ring-rose-500/15 transition-all shadow-xs"
+                  />
                   <button
                     type="button"
                     onClick={() => setShowLoginPassword((v) => !v)}
-                    className="text-xs font-medium text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+                    title={showLoginPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 rounded-lg transition-colors cursor-pointer"
                   >
-                    {showLoginPassword ? 'Ocultar' : 'Mostrar'}
+                    {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <input
-                  id="login-password"
-                  type={showLoginPassword ? 'text' : 'password'}
-                  required
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all"
-                />
+
+                {/* Notificación de Bloq Mayús activo */}
+                {capsLockActive && (
+                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg animate-in fade-in">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                    <span>Bloq Mayús está activado</span>
+                  </div>
+                )}
               </div>
 
               <button
                 type="submit"
                 disabled={loadingLogin}
-                className="w-full py-3 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-rose-950/60 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                className="pro-btn-crimson w-full py-3 rounded-xl text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer mt-2 disabled:opacity-50"
               >
                 {loadingLogin ? (
                   <>
@@ -412,13 +524,13 @@ export default function App() {
               </button>
             </form>
 
-            {/* Accesos rápidos de prueba con roles */}
-            <div className="mt-8 pt-6 border-t border-zinc-800/80">
+            {/* Accesos rápidos de prueba con roles (Mantenidos tal como los solicitaste) */}
+            <div className="pt-6 border-t border-slate-200/80">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Acceso Demo Rápido:
                 </span>
-                <span className="text-[11px] text-zinc-500">Role-Based Access Control</span>
+                <span className="text-[11px] text-slate-400">Roles del sistema</span>
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 <button
@@ -427,17 +539,17 @@ export default function App() {
                     setLoginEmail('admin@autopro.com');
                     setLoginPassword('Password123!');
                   }}
-                  className="p-2.5 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700 rounded-xl text-left transition-all group"
+                  className="p-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-rose-300 rounded-xl text-left transition-all group cursor-pointer shadow-xs"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white group-hover:text-rose-400 transition-colors">
+                    <span className="text-xs font-bold text-slate-800 group-hover:text-rose-600 transition-colors">
                       Admin
                     </span>
-                    <span className="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded font-mono">
+                    <span className="text-[10px] bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded font-mono font-bold">
                       Total
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5 truncate">admin@autopro.com</p>
+                  <p className="text-[11px] text-slate-500 mt-1 truncate">admin@autopro.com</p>
                 </button>
 
                 <button
@@ -446,25 +558,21 @@ export default function App() {
                     setLoginEmail('recepcion@autopro.com');
                     setLoginPassword('Password123!');
                   }}
-                  className="p-2.5 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700 rounded-xl text-left transition-all group"
+                  className="p-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-rose-300 rounded-xl text-left transition-all group cursor-pointer shadow-xs"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white group-hover:text-rose-400 transition-colors">
+                    <span className="text-xs font-bold text-slate-800 group-hover:text-rose-600 transition-colors">
                       Recepción
                     </span>
-                    <span className="text-[10px] bg-zinc-800 text-zinc-300 border border-zinc-700 px-1.5 py-0.5 rounded font-mono">
+                    <span className="text-[10px] bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-mono font-bold">
                       Piso
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5 truncate">recepcion@autopro.com</p>
+                  <p className="text-[11px] text-slate-500 mt-1 truncate">recepcion@autopro.com</p>
                 </button>
               </div>
             </div>
           </div>
-
-          <p className="text-center text-xs text-zinc-500 mt-6">
-            AutoPro v1.2 • Diseño SaaS Clean Pro Crimson Sport
-          </p>
         </div>
       </div>
     );
