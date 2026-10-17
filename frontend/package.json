@@ -12,7 +12,8 @@
     "lucide-react": "^0.453.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^2.13.0"
+    "recharts": "^2.13.0",
+    "sweetalert2": "^11.26.25"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
