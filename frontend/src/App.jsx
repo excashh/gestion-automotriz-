@@ -47,6 +47,7 @@ import {
   refaccionesService,
   ordenesService
 } from './services/api';
+import { toast, alertaError, alertaAdvertencia, confirmarAccion } from './utils/alertas';
 
 // Paleta de gráficas: Carmesí Deportivo, Vino profundo, Ámbar cálido, Esmeralda, Pizarra grafito
 const CHART_COLORS = ['#e11d48', '#be123c', '#f59e0b', '#10b981', '#71717a', '#3f3f46'];
@@ -176,24 +177,43 @@ export default function App() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
+
+    if (!loginEmail.trim() || !loginPassword.trim()) {
+      alertaAdvertencia('Campos requeridos', 'Por favor ingresa tanto tu correo como tu contraseña.');
+      return;
+    }
+
     setLoadingLogin(true);
     try {
       const res = await authService.login({ email: loginEmail, password: loginPassword });
       localStorage.setItem('autopro_token', res.token);
       localStorage.setItem('autopro_user', JSON.stringify(res.usuario));
       setUser(res.usuario);
-      notificar(`¡Bienvenido, ${res.usuario.nombre}!`);
+      toast(`¡Bienvenido al sistema, ${res.usuario.nombre}!`, 'success');
     } catch (err) {
-      setLoginError(err.message || 'Error al iniciar sesión');
+      const mensajeError = err.message || 'No fue posible iniciar sesión. Verifica tus credenciales o el estado del servidor.';
+      setLoginError(mensajeError);
+      alertaError('Error de autenticación', mensajeError);
     } finally {
       setLoadingLogin(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('autopro_token');
-    localStorage.removeItem('autopro_user');
-    setUser(null);
+  const handleLogout = async () => {
+    const confirmar = await confirmarAccion({
+      title: '¿Cerrar sesión?',
+      text: 'Tendrás que iniciar sesión nuevamente para acceder al sistema.',
+      confirmButtonText: 'Sí, salir',
+      cancelButtonText: 'Permanecer',
+      icon: 'question',
+    });
+
+    if (confirmar) {
+      localStorage.removeItem('autopro_token');
+      localStorage.removeItem('autopro_user');
+      setUser(null);
+      toast('Sesión finalizada correctamente', 'info');
+    }
   };
 
   const handleCrearCliente = async (e) => {
