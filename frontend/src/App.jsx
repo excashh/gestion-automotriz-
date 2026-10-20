@@ -28,7 +28,9 @@ import {
   EyeOff,
   ShieldCheck,
   Sparkles,
-  Loader2
+  Loader2,
+  Filter,
+  Layers
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -75,7 +77,11 @@ export default function App() {
   const [dashboardData, setDashboardData] = useState(null);
   const [clientesData, setClientesData] = useState({ datos: [], total: 0 });
   const [refaccionesData, setRefaccionesData] = useState({ datos: [], total: 0 });
-  const [ordenesData, setOrdenesData] = useState({ datos: [], total: 0 });
+  const [ordenesData, setOrdenesData] = useState({
+    datos: [],
+    total: 0,
+    conteos: { total: 0, pendientes: 0, completadas: 0, entregadas: 0 }
+  });
   const [reporteVentas, setReporteVentas] = useState(null);
 
   // Buscadores y filtros
@@ -162,14 +168,25 @@ export default function App() {
   };
 
   // Cargar Órdenes
-  const cargarOrdenes = async () => {
+  const cargarOrdenes = async (estadoSobrescrito = null, busquedaSobrescrita = null) => {
     try {
-      const data = await ordenesService.getOrdenes(1, searchOrdenes, filtroEstadoOrden);
+      const estadoActual = estadoSobrescrito !== null ? estadoSobrescrito : filtroEstadoOrden;
+      const busquedaActual = busquedaSobrescrita !== null ? busquedaSobrescrita : searchOrdenes;
+      const data = await ordenesService.getOrdenes(1, busquedaActual, estadoActual);
       setOrdenesData(data);
     } catch (e) {
       console.error(e);
     }
   };
+
+  // Debounce para búsqueda y filtro de órdenes
+  useEffect(() => {
+    if (!user) return;
+    const timer = setTimeout(() => {
+      cargarOrdenes();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchOrdenes, filtroEstadoOrden]);
 
   const cargarReporte = async () => {
     try {
@@ -964,8 +981,11 @@ export default function App() {
                   <p className="text-xs text-slate-500">Últimos movimientos registrados en el taller</p>
                 </div>
                 <button
-                  onClick={() => setActiveTab('ordenes')}
-                  className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1"
+                  onClick={() => {
+                    setFiltroEstadoOrden('');
+                    setActiveTab('ordenes');
+                  }}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer"
                 >
                   Ver todas <ArrowRight className="w-3.5 h-3.5" />
                 </button>
@@ -1021,7 +1041,98 @@ export default function App() {
               </button>
             </div>
 
-            {/* Filtros y Buscador */}
+            {/* Pestañas de Filtro Rápido (Todas, Pendientes, Completadas, Entregadas) */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setFiltroEstadoOrden('')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  filtroEstadoOrden === '' || filtroEstadoOrden === 'todas' || filtroEstadoOrden === 'todos'
+                    ? 'bg-zinc-900 text-white shadow-sm ring-2 ring-zinc-900/10'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Todas</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    filtroEstadoOrden === '' || filtroEstadoOrden === 'todas' || filtroEstadoOrden === 'todos'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {ordenesData.conteos?.total ?? ordenesData.total ?? 0}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFiltroEstadoOrden('pendiente')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  filtroEstadoOrden === 'pendiente' || filtroEstadoOrden === 'programada' || filtroEstadoOrden === 'en_revision' || filtroEstadoOrden === 'en_reparacion'
+                    ? 'bg-amber-500 text-white shadow-sm ring-2 ring-amber-500/20'
+                    : 'bg-white hover:bg-amber-50/70 text-slate-700 border border-slate-200 hover:border-amber-300'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5 text-amber-500 group-hover:text-amber-600" />
+                <span>Pendientes</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    filtroEstadoOrden === 'pendiente' || filtroEstadoOrden === 'programada' || filtroEstadoOrden === 'en_revision' || filtroEstadoOrden === 'en_reparacion'
+                      ? 'bg-white/25 text-white'
+                      : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {ordenesData.conteos?.pendientes ?? 0}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFiltroEstadoOrden('completada')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  filtroEstadoOrden === 'completada'
+                    ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-600/20'
+                    : 'bg-white hover:bg-rose-50/70 text-slate-700 border border-slate-200 hover:border-rose-300'
+                }`}
+              >
+                <CheckCircle className="w-3.5 h-3.5 text-rose-500" />
+                <span>Completadas</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    filtroEstadoOrden === 'completada'
+                      ? 'bg-white/25 text-white'
+                      : 'bg-rose-100 text-rose-800'
+                  }`}
+                >
+                  {ordenesData.conteos?.completadas ?? 0}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFiltroEstadoOrden('entregada')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  filtroEstadoOrden === 'entregada'
+                    ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-600/20'
+                    : 'bg-white hover:bg-emerald-50/70 text-slate-700 border border-slate-200 hover:border-emerald-300'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Entregadas</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    filtroEstadoOrden === 'entregada'
+                      ? 'bg-white/25 text-white'
+                      : 'bg-emerald-100 text-emerald-800'
+                  }`}
+                >
+                  {ordenesData.conteos?.entregadas ?? 0}
+                </span>
+              </button>
+            </div>
+
+            {/* Buscador y Filtros Secundarios */}
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative">
                 <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
@@ -1030,25 +1141,48 @@ export default function App() {
                   placeholder="Buscar por folio, placas o cliente..."
                   value={searchOrdenes}
                   onChange={(e) => setSearchOrdenes(e.target.value)}
-                  onKeyUp={(e) => e.key === 'Enter' && cargarOrdenes()}
-                  className="pro-input w-full pl-10 pr-4 py-2.5 text-sm"
+                  className="pro-input w-full pl-10 pr-10 py-2.5 text-sm"
                 />
+                {searchOrdenes && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchOrdenes('')}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
-              <select
-                value={filtroEstadoOrden}
-                onChange={(e) => {
-                  setFiltroEstadoOrden(e.target.value);
-                  setTimeout(cargarOrdenes, 50);
-                }}
-                className="pro-input px-4 py-2.5 text-sm cursor-pointer"
-              >
-                <option value="">Todos los estados</option>
-                <option value="programada">Programada</option>
-                <option value="en_revision">En Revisión</option>
-                <option value="en_reparacion">En Reparación</option>
-                <option value="completada">Completada</option>
-                <option value="entregada">Entregada</option>
-              </select>
+              <div className="flex items-center gap-2">
+                <select
+                  value={filtroEstadoOrden}
+                  onChange={(e) => setFiltroEstadoOrden(e.target.value)}
+                  className="pro-input px-4 py-2.5 text-sm cursor-pointer"
+                >
+                  <option value="">Todos los estados</option>
+                  <option value="pendiente">⚡ Pendientes (activas)</option>
+                  <option value="completada">✓ Completada</option>
+                  <option value="entregada">✔ Entregada</option>
+                  <option disabled>──────────</option>
+                  <option value="programada">Programada</option>
+                  <option value="en_revision">En Revisión</option>
+                  <option value="en_reparacion">En Reparación</option>
+                </select>
+                {(filtroEstadoOrden || searchOrdenes) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFiltroEstadoOrden('');
+                      setSearchOrdenes('');
+                    }}
+                    title="Restablecer filtros"
+                    className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Limpiar</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Tabla de Órdenes */}
@@ -1098,8 +1232,28 @@ export default function App() {
                     ))}
                     {ordenesData.datos.length === 0 && (
                       <tr>
-                        <td colSpan="7" className="px-6 py-8 text-center text-slate-400">
-                          No se encontraron órdenes de servicio con los filtros aplicados.
+                        <td colSpan="7" className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center max-w-sm mx-auto text-slate-400 space-y-2">
+                            <Filter className="w-10 h-10 text-slate-300 stroke-[1.5]" />
+                            <p className="font-semibold text-slate-700">No se encontraron órdenes</p>
+                            <p className="text-xs text-slate-500">
+                              {filtroEstadoOrden || searchOrdenes
+                                ? `No se encontraron órdenes de servicio con los filtros aplicados.`
+                                : 'No hay órdenes de servicio registradas.'}
+                            </p>
+                            {(filtroEstadoOrden || searchOrdenes) && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFiltroEstadoOrden('');
+                                  setSearchOrdenes('');
+                                }}
+                                className="mt-2 text-xs font-bold text-rose-600 hover:text-rose-700 underline cursor-pointer"
+                              >
+                                Limpiar filtros y ver todas
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     )}

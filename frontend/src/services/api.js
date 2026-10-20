@@ -70,8 +70,8 @@ export const refaccionesService = {
 };
 
 export const ordenesService = {
-  getOrdenes: (page = 1, buscar = '', estado = '') => {
-    let url = `/ordenes?page=${page}&limit=10`;
+  getOrdenes: (page = 1, buscar = '', estado = '', limit = 50) => {
+    let url = `/ordenes?page=${page}&limit=${limit}`;
     if (buscar) url += `&buscar=${encodeURIComponent(buscar)}`;
     if (estado) url += `&estado=${encodeURIComponent(estado)}`;
     return request(url);

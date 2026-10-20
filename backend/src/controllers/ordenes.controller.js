@@ -4,17 +4,25 @@ import { pool, query } from '../config/db.js';
 export const getOrdenes = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page || '1', 10);
-    const limit = parseInt(req.query.limit || '10', 10);
-    const estado = req.query.estado;
+    const limit = parseInt(req.query.limit || '50', 10);
+    const rawEstado = req.query.estado ? req.query.estado.trim().toLowerCase() : '';
     const buscar = req.query.buscar ? req.query.buscar.trim() : '';
     const offset = (page - 1) * limit;
 
     let whereClause = 'WHERE 1=1';
     const params = [];
 
-    if (estado) {
-      params.push(estado);
-      whereClause += ` AND o.estado = $${params.length}`;
+    if (rawEstado && rawEstado !== 'todos' && rawEstado !== 'todas') {
+      if (rawEstado === 'pendiente' || rawEstado === 'pendientes') {
+        whereClause += ` AND o.estado IN ('programada', 'en_revision', 'en_reparacion')`;
+      } else if (rawEstado === 'completado' || rawEstado === 'completada' || rawEstado === 'completados' || rawEstado === 'completadas') {
+        whereClause += ` AND o.estado = 'completada'`;
+      } else if (rawEstado === 'entregado' || rawEstado === 'entregada' || rawEstado === 'entregados' || rawEstado === 'entregadas') {
+        whereClause += ` AND o.estado = 'entregada'`;
+      } else {
+        params.push(rawEstado);
+        whereClause += ` AND o.estado = $${params.length}`;
+      }
     }
 
     if (buscar) {
@@ -31,6 +39,17 @@ export const getOrdenes = async (req, res, next) => {
       params
     );
     const total = parseInt(countResult.rows[0].count, 10);
+
+    // Conteos globales para badges de filtro (todas, pendientes, completadas, entregadas)
+    const contadoresRes = await query(
+      `SELECT
+         COUNT(*) AS total,
+         COUNT(*) FILTER (WHERE estado IN ('programada', 'en_revision', 'en_reparacion')) AS pendientes,
+         COUNT(*) FILTER (WHERE estado = 'completada') AS completadas,
+         COUNT(*) FILTER (WHERE estado = 'entregada') AS entregadas
+       FROM ordenes_trabajo`
+    );
+    const conteosRow = contadoresRes.rows[0] || {};
 
     const queryParams = [...params, limit, offset];
     const dataResult = await query(
@@ -58,6 +77,12 @@ export const getOrdenes = async (req, res, next) => {
       limite: limit,
       total,
       totalPaginas: Math.ceil(total / limit) || 1,
+      conteos: {
+        total: parseInt(conteosRow.total || 0, 10),
+        pendientes: parseInt(conteosRow.pendientes || 0, 10),
+        completadas: parseInt(conteosRow.completadas || 0, 10),
+        entregadas: parseInt(conteosRow.entregadas || 0, 10),
+      },
       datos: dataResult.rows,
     });
   } catch (error) {
