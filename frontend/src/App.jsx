@@ -26,7 +26,9 @@ import {
   Lock,
   Eye,
   EyeOff,
-  ShieldCheck
+  ShieldCheck,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -48,6 +50,7 @@ import {
   ordenesService
 } from './services/api';
 import { toast, alertaError, alertaAdvertencia, confirmarAccion } from './utils/alertas';
+import { LISTA_MARCAS, obtenerModelos, decodificarVin } from './services/vehiculosCatalog';
 
 // Paleta de gráficas: Carmesí Deportivo, Vino profundo, Ámbar cálido, Esmeralda, Pizarra grafito
 const CHART_COLORS = ['#e11d48', '#be123c', '#f59e0b', '#10b981', '#71717a', '#3f3f46'];
@@ -89,6 +92,9 @@ export default function App() {
   const [nuevoCliente, setNuevoCliente] = useState({ nombre: '', telefono: '', email: '', direccion: '', rfc: '' });
   const [modalVehiculo, setModalVehiculo] = useState(null); // id del cliente
   const [nuevoVehiculo, setNuevoVehiculo] = useState({ placas: '', vin: '', marca: '', modelo: '', anio: 2022 });
+  const [sugerenciasModelos, setSugerenciasModelos] = useState([]);
+  const [cargandoModelos, setCargandoModelos] = useState(false);
+  const [decodificandoVin, setDecodificandoVin] = useState(false);
 
   const [modalNuevaOrden, setModalNuevaOrden] = useState(false);
   const [nuevaOrden, setNuevaOrden] = useState({ vehiculo_id: '', motivo: '', km_entrada: 0 });
@@ -230,6 +236,55 @@ export default function App() {
     }
   };
 
+  const cambiarMarcaVehiculo = async (marca) => {
+    setNuevoVehiculo((prev) => ({ ...prev, marca }));
+    if (!marca || marca.trim().length === 0) {
+      setSugerenciasModelos([]);
+      return;
+    }
+    setCargandoModelos(true);
+    try {
+      const modelos = await obtenerModelos(marca);
+      setSugerenciasModelos(modelos);
+    } catch (_err) {
+      setSugerenciasModelos([]);
+    } finally {
+      setCargandoModelos(false);
+    }
+  };
+
+  const handleDecodificarVin = async () => {
+    if (!nuevoVehiculo.vin || nuevoVehiculo.vin.trim().length !== 17) {
+      toast('El VIN debe contener exactamente 17 caracteres', 'warning');
+      return;
+    }
+    setDecodificandoVin(true);
+    try {
+      const info = await decodificarVin(nuevoVehiculo.vin);
+      const nuevaMarca = info.marca || nuevoVehiculo.marca;
+      const nuevoModelo = info.modelo || nuevoVehiculo.modelo;
+      const nuevoAnio = info.anio || nuevoVehiculo.anio;
+
+      setNuevoVehiculo((prev) => ({
+        ...prev,
+        marca: nuevaMarca,
+        modelo: nuevoModelo,
+        anio: nuevoAnio
+      }));
+
+      if (nuevaMarca) {
+        const modelos = await obtenerModelos(nuevaMarca);
+        setSugerenciasModelos(modelos);
+      }
+
+      toast(`VIN decodificado (${info.origen}): ${nuevaMarca || 'Detectado'} ${nuevoModelo || ''}`, 'success');
+    } catch (err) {
+      toast(err.message || 'Error al decodificar VIN', 'error');
+    } finally {
+      setDecodificandoVin(false);
+    }
+  };
+
   const handleCrearVehiculo = async (e) => {
     e.preventDefault();
     try {
@@ -237,6 +292,7 @@ export default function App() {
       notificar('Vehículo vinculado con éxito');
       setModalVehiculo(null);
       setNuevoVehiculo({ placas: '', vin: '', marca: '', modelo: '', anio: 2022 });
+      setSugerenciasModelos([]);
       cargarClientes();
       cargarDashboard();
     } catch (err) {
@@ -1427,8 +1483,22 @@ export default function App() {
           <div className="fixed inset-0 bg-zinc-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
               <div className="flex items-center justify-between mb-4 border-b pb-3">
-                <h3 className="text-lg font-bold text-slate-900">Vincular Vehículo al Cliente</h3>
-                <button onClick={() => setModalVehiculo(null)} className="text-slate-400 hover:text-slate-600">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
+                    <Car className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 leading-tight">Vincular Vehículo al Cliente</h3>
+                    <p className="text-xs text-slate-500">Autocompletado inteligente con catálogo y modelos</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setModalVehiculo(null);
+                    setSugerenciasModelos([]);
+                  }}
+                  className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -1445,57 +1515,151 @@ export default function App() {
                     className="pro-input w-full text-sm p-2.5 font-mono uppercase"
                   />
                 </div>
+
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">
-                    Número VIN (Exactamente 17 caracteres)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Número VIN (Exactamente 17 caracteres)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleDecodificarVin}
+                      disabled={decodificandoVin || !nuevoVehiculo.vin || nuevoVehiculo.vin.length !== 17}
+                      className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 disabled:text-slate-300 flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed transition"
+                      title="Decodificar marca, modelo y año con VIN"
+                    >
+                      {decodificandoVin ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" /> Decodificando...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3 text-amber-500" /> Auto-llenar con VIN
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <input
                     type="text"
                     maxLength={17}
                     placeholder="1HGCR2F83HA123456"
                     value={nuevoVehiculo.vin || ''}
-                    onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, vin: e.target.value.toUpperCase() })}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase();
+                      setNuevoVehiculo({ ...nuevoVehiculo, vin: val });
+                      if (val.length === 17 && !nuevoVehiculo.marca) {
+                        decodificarVin(val).then((info) => {
+                          if (info.marca) {
+                            cambiarMarcaVehiculo(info.marca);
+                            setNuevoVehiculo((prev) => ({
+                              ...prev,
+                              marca: info.marca,
+                              modelo: info.modelo || prev.modelo,
+                              anio: info.anio || prev.anio
+                            }));
+                            toast(`VIN detectado: ${info.marca} ${info.modelo || ''}`, 'info');
+                          }
+                        }).catch(() => {});
+                      }
+                    }}
                     className="pro-input w-full text-sm p-2.5 font-mono uppercase"
                   />
                 </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-slate-700 block mb-1">Marca</label>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">
+                      Marca <span className="text-slate-400 text-[10px]">(Autocompleta)</span>
+                    </label>
                     <input
                       type="text"
                       required
-                      placeholder="Toyota, Ford..."
+                      list="lista-marcas-autos"
+                      placeholder="Toyota, Ford, Nissan..."
                       value={nuevoVehiculo.marca}
-                      onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, marca: e.target.value })}
+                      onChange={(e) => cambiarMarcaVehiculo(e.target.value)}
                       className="pro-input w-full text-sm p-2.5"
                     />
+                    <datalist id="lista-marcas-autos">
+                      {LISTA_MARCAS.map((m) => (
+                        <option key={m} value={m} />
+                      ))}
+                    </datalist>
                   </div>
+
                   <div>
-                    <label className="text-xs font-semibold text-slate-700 block mb-1">Modelo</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-slate-700">Modelo</label>
+                      {cargandoModelos && (
+                        <span className="text-[10px] text-rose-600 font-medium animate-pulse flex items-center gap-0.5">
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" /> Buscando...
+                        </span>
+                      )}
+                      {!cargandoModelos && sugerenciasModelos.length > 0 && (
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          {sugerenciasModelos.length} opciones
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
                       required
-                      placeholder="Corolla, Ranger..."
+                      list="lista-modelos-autos"
+                      placeholder={sugerenciasModelos.length > 0 ? 'Selecciona o escribe...' : 'Corolla, Sentra...'}
                       value={nuevoVehiculo.modelo}
                       onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, modelo: e.target.value })}
                       className="pro-input w-full text-sm p-2.5"
                     />
+                    <datalist id="lista-modelos-autos">
+                      {sugerenciasModelos.map((mod, idx) => (
+                        <option key={`${mod}-${idx}`} value={mod} />
+                      ))}
+                    </datalist>
                   </div>
                 </div>
+
+                {/* Chips de modelos sugeridos */}
+                {sugerenciasModelos.length > 0 && (
+                  <div>
+                    <p className="text-[11px] font-semibold text-slate-500 mb-1.5">Modelos sugeridos para {nuevoVehiculo.marca}:</p>
+                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 bg-slate-50 border border-slate-100 rounded-xl">
+                      {sugerenciasModelos.slice(0, 10).map((m, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setNuevoVehiculo((prev) => ({ ...prev, modelo: m }))}
+                          className={`text-xs px-2.5 py-1 rounded-lg border transition cursor-pointer ${
+                            nuevoVehiculo.modelo === m
+                              ? 'bg-rose-600 text-white border-rose-600 font-bold shadow-sm'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-rose-300 hover:text-rose-600'
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1">Año</label>
                   <input
                     type="number"
                     required
+                    min={1950}
+                    max={2100}
                     value={nuevoVehiculo.anio}
-                    onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, anio: parseInt(e.target.value) })}
+                    onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, anio: parseInt(e.target.value) || '' })}
                     className="pro-input w-full text-sm p-2.5"
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-3">
                   <button
                     type="button"
-                    onClick={() => setModalVehiculo(null)}
+                    onClick={() => {
+                      setModalVehiculo(null);
+                      setSugerenciasModelos([]);
+                    }}
                     className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                   >
                     Cancelar
