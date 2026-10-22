@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 
 import authRoutes from './routes/auth.routes.js';
 import clientesRoutes from './routes/clientes.routes.js';
+import vehiculosRoutes from './routes/vehiculos.routes.js';
 import refaccionesRoutes from './routes/refacciones.routes.js';
 import ordenesRoutes from './routes/ordenes.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
@@ -39,6 +40,7 @@ app.get('/api', (req, res) => {
     modulos: {
       auth: '/api/auth/login',
       clientes: '/api/clientes',
+      vehiculos: '/api/vehiculos',
       refacciones: '/api/refacciones',
       ordenes: '/api/ordenes',
       dashboard: '/api/dashboard/stats',
@@ -51,6 +53,7 @@ app.get('/api', (req, res) => {
 // Rutas principales de la API (Sección 5 y 8 de la rúbrica)
 app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clientesRoutes);
+app.use('/api/vehiculos', vehiculosRoutes);
 app.use('/api/refacciones', refaccionesRoutes);
 app.use('/api/ordenes', ordenesRoutes);
 app.use('/api/dashboard', dashboardRoutes);

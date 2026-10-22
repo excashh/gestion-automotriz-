@@ -89,3 +89,13 @@ Registro centralizado de micro-tareas para el equipo y el asistente de desarroll
     - Validación de `stock` y `stock_minimo` en `POST /refacciones` y `PUT /refacciones/:id`: deben ser enteros mayores o iguales a 0; de lo contrario se responde HTTP 400 con mensaje descriptivo.
     - `POST /refacciones` ya no responde 422 por stock negativo (queda 422 solo para `costo` y `precio_publico` negativos).
     - Documentación de los códigos de respuesta en `docs/api.md`.
+
+- **[TASK-008] Backend: CRUD completo de vehículos**
+  - **Fecha:** 2026-10-21
+  - **Rama:** `feature/task-008-crud-vehiculos`
+  - **Cambios realizados:**
+    - Nuevo módulo `/api/vehiculos` (`vehiculos.controller.js` y `vehiculos.routes.js`): listar con búsqueda, filtros y paginación, ver detalle, editar (parcial) y baja lógica.
+    - Validaciones de placas, VIN, año, kilometraje y longitudes en la edición, con las mismas reglas de la creación (TASK-001).
+    - Regla de negocio: no se puede dar de baja un vehículo con órdenes abiertas (HTTP 422).
+    - `POST /api/vehiculos` como alta alternativa; `POST /api/clientes/vehiculos` se conserva sin cambios.
+    - Documentación de los endpoints en `docs/api.md`.
