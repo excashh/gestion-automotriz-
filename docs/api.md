@@ -80,6 +80,54 @@ Aplica **baja lógica** (`activo = false`) a un cliente.
 
 ---
 
+### Vehículos (`/vehiculos`)
+CRUD completo de vehículos. El alta también sigue disponible en `POST /clientes/vehiculos`.
+
+#### `GET /vehiculos?page=1&limit=10&buscar=civic&cliente_id=1&marca=honda`
+Lista los vehículos activos con paginación. `buscar` filtra por placas, VIN, marca, modelo o nombre del propietario.
+- **Permisos:** Cualquier usuario autenticado.
+- **Respuestas:** `200 OK` (`datos`, `pagina`, `limite`, `total`, `totalPaginas`), `400 Bad Request` (`cliente_id` inválido).
+
+#### `GET /vehiculos/:id`
+Devuelve un vehículo con los datos de su propietario y el total de órdenes que ha tenido.
+- **Permisos:** Cualquier usuario autenticado.
+- **Respuestas:** `200 OK`, `400 Bad Request` (id inválido), `404 Not Found`.
+
+#### `POST /vehiculos`
+Registra un vehículo. Mismo cuerpo y validaciones que `POST /clientes/vehiculos`.
+- **Permisos:** Roles `admin`, `recepcion`.
+- **Respuestas:** `201 Created`, `400 Bad Request`, `409 Conflict` (placas o VIN duplicados).
+
+#### `PUT /vehiculos/:id`
+Edita un vehículo. Solo cambian los campos enviados.
+- **Permisos:** Roles `admin`, `recepcion`.
+- **Body (todos opcionales):**
+```json
+{
+  "cliente_id": 1,
+  "placas": "ABC-123-A",
+  "vin": "1HGCM82633A004352",
+  "marca": "Honda",
+  "modelo": "Civic",
+  "anio": 2021,
+  "color": "Gris",
+  "kilometraje": 36000,
+  "motor": "2.0L",
+  "transmision": "Automática",
+  "combustible": "Gasolina"
+}
+```
+- **Validaciones:** placas de 3 a 10 caracteres (letras, números y guiones), VIN de exactamente 17 caracteres alfanuméricos, año entre 1950 y 2100, kilometraje entero mayor o igual a 0, y `cliente_id` de un cliente activo.
+- **Respuestas:** `200 OK`, `400 Bad Request`, `404 Not Found`, `409 Conflict` (placas o VIN duplicados).
+
+#### `DELETE /vehiculos/:id`
+Baja lógica del vehículo (`activo = false`).
+- **Permisos:** Rol `admin`.
+- **Regla de negocio:** no se permite si el vehículo tiene órdenes abiertas (`programada`, `en_revision` o `en_reparacion`).
+- **Respuestas:** `200 OK`, `400 Bad Request` (id inválido), `404 Not Found`, `422 Unprocessable Entity` (tiene órdenes abiertas).
+
+---
+
 ## 3. Módulo de Refacciones & Inventario (`/refacciones`)
 
 ### `GET /refacciones?page=1&limit=10&buscar=aceite&stock_bajo=true`
