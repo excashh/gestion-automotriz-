@@ -47,6 +47,7 @@ export const dashboardService = {
 export const clientesService = {
   getClientes: (page = 1, buscar = '') =>
     request(`/clientes?page=${page}&limit=10&buscar=${encodeURIComponent(buscar)}`),
+  getVehiculos: () => request('/clientes/vehiculos'),
   getClienteById: (id) => request(`/clientes/${id}`),
   crearCliente: (cliente) =>
     request('/clientes', { method: 'POST', body: JSON.stringify(cliente) }),

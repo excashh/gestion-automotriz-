@@ -76,11 +76,12 @@ export default function App() {
   // Estados de datos
   const [dashboardData, setDashboardData] = useState(null);
   const [clientesData, setClientesData] = useState({ datos: [], total: 0 });
+  const [vehiculosDisponibles, setVehiculosDisponibles] = useState([]);
   const [refaccionesData, setRefaccionesData] = useState({ datos: [], total: 0 });
   const [ordenesData, setOrdenesData] = useState({
     datos: [],
     total: 0,
-    conteos: { total: 0, pendientes: 0, completadas: 0, entregadas: 0 }
+    conteos: { total: 0, pendientes: 0, completadas: 0, entregadas: 0, canceladas: 0 }
   });
   const [reporteVentas, setReporteVentas] = useState(null);
 
@@ -331,6 +332,16 @@ export default function App() {
     }
   };
 
+  const abrirModalNuevaOrden = async () => {
+    setModalNuevaOrden(true);
+    try {
+      const data = await clientesService.getVehiculos();
+      setVehiculosDisponibles(data.datos);
+    } catch (err) {
+      notificar(err.message, 'error');
+    }
+  };
+
   const verDetalleOrden = async (id) => {
     setOrdenSeleccionada(id);
     try {
@@ -354,7 +365,15 @@ export default function App() {
   };
 
   const handleFinalizarOrden = async () => {
-    if (!window.confirm('¿Confirmas finalizar y facturar esta orden? Se validará el stock en una transacción ACID.')) return;
+    const confirmar = await confirmarAccion({
+      title: '¿Finalizar orden?',
+      text: 'Se facturará la orden y se validará la existencia de refacciones.',
+      confirmButtonText: 'Sí, finalizar orden',
+      cancelButtonText: 'Seguir revisando',
+      icon: 'warning',
+    });
+    if (!confirmar) return;
+
     try {
       const res = await ordenesService.finalizarOrden(ordenSeleccionada, detalleOrden.orden.diagnostico || 'Servicio completado');
       notificar(res.mensaje);
@@ -1034,7 +1053,7 @@ export default function App() {
                 <p className="text-sm text-slate-500">Manejo de diagnósticos, refacciones, mano de obra y facturación transaccional</p>
               </div>
               <button
-                onClick={() => setModalNuevaOrden(true)}
+                onClick={abrirModalNuevaOrden}
                 className="pro-btn-crimson flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm shadow-sm cursor-pointer"
               >
                 <Plus className="w-4 h-4" /> Nueva Orden
@@ -1442,15 +1461,20 @@ export default function App() {
               </div>
               <form onSubmit={handleCrearOrden} className="space-y-3.5">
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">ID del Vehículo Registrado</label>
-                  <input
-                    type="number"
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Vehículo</label>
+                  <select
                     required
-                    placeholder="Ej. 1"
                     value={nuevaOrden.vehiculo_id}
                     onChange={(e) => setNuevaOrden({ ...nuevaOrden, vehiculo_id: e.target.value })}
                     className="pro-input w-full text-sm p-2.5"
-                  />
+                  >
+                    <option value="">Selecciona un vehículo registrado</option>
+                    {vehiculosDisponibles.map((vehiculo) => (
+                      <option key={vehiculo.id} value={vehiculo.id}>
+                        {vehiculo.marca} {vehiculo.modelo} · {vehiculo.placas} · {vehiculo.cliente_nombre}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1">Motivo / Síntomas Reportados</label>
