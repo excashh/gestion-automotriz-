@@ -51,7 +51,7 @@ import {
   refaccionesService,
   ordenesService
 } from './services/api';
-import { toast, alertaError, alertaAdvertencia, confirmarAccion } from './utils/alertas';
+import { toast, alertaError, alertaAdvertencia, confirmarAccion, pedirMotivoCancelacion } from './utils/alertas';
 import { LISTA_MARCAS, obtenerModelos, decodificarVin } from './services/vehiculosCatalog';
 
 // Paleta de gráficas: Carmesí Deportivo, Vino profundo, Ámbar cálido, Esmeralda, Pizarra grafito
@@ -76,11 +76,12 @@ export default function App() {
   // Estados de datos
   const [dashboardData, setDashboardData] = useState(null);
   const [clientesData, setClientesData] = useState({ datos: [], total: 0 });
+  const [vehiculosDisponibles, setVehiculosDisponibles] = useState([]);
   const [refaccionesData, setRefaccionesData] = useState({ datos: [], total: 0 });
   const [ordenesData, setOrdenesData] = useState({
     datos: [],
     total: 0,
-    conteos: { total: 0, pendientes: 0, completadas: 0, entregadas: 0 }
+    conteos: { total: 0, pendientes: 0, completadas: 0, entregadas: 0, canceladas: 0 }
   });
   const [reporteVentas, setReporteVentas] = useState(null);
 
@@ -331,6 +332,16 @@ export default function App() {
     }
   };
 
+  const abrirModalNuevaOrden = async () => {
+    setModalNuevaOrden(true);
+    try {
+      const data = await clientesService.getVehiculos();
+      setVehiculosDisponibles(data.datos);
+    } catch (err) {
+      notificar(err.message, 'error');
+    }
+  };
+
   const verDetalleOrden = async (id) => {
     setOrdenSeleccionada(id);
     try {
@@ -354,7 +365,15 @@ export default function App() {
   };
 
   const handleFinalizarOrden = async () => {
-    if (!window.confirm('¿Confirmas finalizar y facturar esta orden? Se validará el stock en una transacción ACID.')) return;
+    const confirmar = await confirmarAccion({
+      title: '¿Finalizar orden?',
+      text: 'Se facturará la orden y se validará la existencia de refacciones.',
+      confirmButtonText: 'Sí, finalizar orden',
+      cancelButtonText: 'Seguir revisando',
+      icon: 'warning',
+    });
+    if (!confirmar) return;
+
     try {
       const res = await ordenesService.finalizarOrden(ordenSeleccionada, detalleOrden.orden.diagnostico || 'Servicio completado');
       notificar(res.mensaje);
@@ -362,6 +381,20 @@ export default function App() {
       cargarOrdenes();
       cargarDashboard();
       cargarRefacciones();
+    } catch (err) {
+      notificar(err.message, 'error');
+    }
+  };
+
+  const handleCancelarOrden = async () => {
+    const motivo = await pedirMotivoCancelacion();
+    if (!motivo) return;
+    try {
+      const res = await ordenesService.cancelarOrden(ordenSeleccionada, motivo);
+      notificar(res.mensaje);
+      verDetalleOrden(ordenSeleccionada);
+      cargarOrdenes();
+      cargarDashboard();
     } catch (err) {
       notificar(err.message, 'error');
     }
@@ -398,6 +431,12 @@ export default function App() {
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Completada
+          </span>
+        );
+      case 'cancelada':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Cancelada
           </span>
         );
       case 'en_reparacion':
@@ -675,7 +714,7 @@ export default function App() {
   // 2. APLICACIÓN PRINCIPAL (AUTENTICADO)
   // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800 selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-800 selection:bg-rose-500 selection:text-white">
       {/* Notificación Toast flotante */}
       {notificacion && (
         <div
@@ -695,9 +734,9 @@ export default function App() {
       )}
 
       {/* Barra Lateral / Sidebar - SaaS Clean Pro Carbón con desvanecido sutil rojo */}
-      <aside className="w-64 sidebar-crimson-subtle text-zinc-300 flex flex-col flex-shrink-0 relative z-20">
+      <aside className="w-full md:w-64 sidebar-crimson-subtle text-zinc-300 flex flex-col flex-shrink-0 relative z-20 md:min-h-screen">
         {/* Identidad de Marca */}
-        <div className="p-5 border-b border-zinc-800/80 flex items-center gap-3">
+        <div className="p-3 md:p-5 border-b border-zinc-800/80 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-rose-700 text-white flex items-center justify-center shadow-md shadow-rose-950/50 ring-1 ring-white/10">
             <Wrench className="w-5 h-5" />
           </div>
@@ -713,10 +752,10 @@ export default function App() {
         </div>
 
         {/* Navegación Principal */}
-        <nav className="flex-1 p-3.5 space-y-1 overflow-y-auto">
+        <nav className="flex flex-row md:flex-col flex-1 p-2 md:p-3.5 gap-1 md:space-y-1 overflow-x-auto md:overflow-y-auto">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+            className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'dashboard'
                 ? 'sidebar-item-active text-white font-semibold'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -728,7 +767,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('ordenes')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+            className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'ordenes'
                 ? 'sidebar-item-active text-white font-semibold'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -740,7 +779,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('clientes')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+            className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'clientes'
                 ? 'sidebar-item-active text-white font-semibold'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -752,7 +791,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('inventario')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+            className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'inventario'
                 ? 'sidebar-item-active text-white font-semibold'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -768,7 +807,7 @@ export default function App() {
                 setActiveTab('reportes');
                 cargarReporte();
               }}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+              className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === 'reportes'
                   ? 'sidebar-item-active text-white font-semibold'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -781,8 +820,8 @@ export default function App() {
         </nav>
 
         {/* Perfil del Usuario y Cierre de Sesión */}
-        <div className="p-3.5 border-t border-zinc-800/80 bg-zinc-950/70">
-          <div className="flex items-center gap-3 px-2 py-2 mb-2 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+        <div className="p-2 md:p-3.5 border-t border-zinc-800/80 bg-zinc-950/70 flex items-center gap-2 md:block">
+          <div className="flex-1 min-w-0 flex items-center gap-3 px-2 py-2 mb-0 md:mb-2 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-700 to-rose-500 text-white flex items-center justify-center font-bold text-xs ring-1 ring-white/10 flex-shrink-0">
               {user.nombre ? user.nombre.charAt(0).toUpperCase() : 'U'}
             </div>
@@ -794,7 +833,7 @@ export default function App() {
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900/80 hover:bg-rose-950/50 hover:text-rose-300 text-zinc-400 border border-zinc-800/80 hover:border-rose-900/50 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+            className="w-auto md:w-full flex-shrink-0 flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900/80 hover:bg-rose-950/50 hover:text-rose-300 text-zinc-400 border border-zinc-800/80 hover:border-rose-900/50 rounded-xl text-xs font-semibold transition-all cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" /> Cerrar Sesión
           </button>
@@ -802,7 +841,7 @@ export default function App() {
       </aside>
 
       {/* Contenido Principal */}
-      <main className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
         {/* =========================================================================
             VISTA 1: DASHBOARD
            ========================================================================= */}
@@ -1034,7 +1073,7 @@ export default function App() {
                 <p className="text-sm text-slate-500">Manejo de diagnósticos, refacciones, mano de obra y facturación transaccional</p>
               </div>
               <button
-                onClick={() => setModalNuevaOrden(true)}
+                onClick={abrirModalNuevaOrden}
                 className="pro-btn-crimson flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm shadow-sm cursor-pointer"
               >
                 <Plus className="w-4 h-4" /> Nueva Orden
@@ -1130,6 +1169,26 @@ export default function App() {
                   {ordenesData.conteos?.entregadas ?? 0}
                 </span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setFiltroEstadoOrden('cancelada')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  filtroEstadoOrden === 'cancelada'
+                    ? 'bg-slate-600 text-white shadow-sm ring-2 ring-slate-600/20'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-400'
+                }`}
+              >
+                <X className={`w-3.5 h-3.5 ${filtroEstadoOrden === 'cancelada' ? 'text-white' : 'text-slate-500'}`} />
+                <span>Canceladas</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    filtroEstadoOrden === 'cancelada' ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {ordenesData.conteos?.canceladas ?? 0}
+                </span>
+              </button>
             </div>
 
             {/* Buscador y Filtros Secundarios */}
@@ -1163,6 +1222,7 @@ export default function App() {
                   <option value="pendiente">⚡ Pendientes (activas)</option>
                   <option value="completada">✓ Completada</option>
                   <option value="entregada">✔ Entregada</option>
+                  <option value="cancelada">Cancelada</option>
                   <option disabled>──────────</option>
                   <option value="programada">Programada</option>
                   <option value="en_revision">En Revisión</option>
@@ -1296,7 +1356,7 @@ export default function App() {
                   <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
                     Refacciones / Piezas Utilizadas
                   </h4>
-                  {detalleOrden.orden.estado !== 'entregada' && detalleOrden.orden.estado !== 'completada' && (
+                  {detalleOrden.orden.estado !== 'entregada' && detalleOrden.orden.estado !== 'completada' && detalleOrden.orden.estado !== 'cancelada' && (
                     <div className="flex gap-2">
                       <select
                         onChange={(e) => setAgregarRefData({ ...agregarRefData, refaccion_id: e.target.value })}
@@ -1346,7 +1406,7 @@ export default function App() {
               </div>
 
               {/* Botón de Cierre Transaccional (ACID) */}
-              {detalleOrden.orden.estado !== 'completada' && detalleOrden.orden.estado !== 'entregada' && (
+              {['programada', 'en_revision', 'en_reparacion'].includes(detalleOrden.orden.estado) && (
                 <div className="p-4 bg-zinc-950 text-white rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-zinc-800">
                   <div>
                     <div className="flex items-center gap-2">
@@ -1357,12 +1417,22 @@ export default function App() {
                       Transacción SQL atómica: descuenta existencias en almacén y congela los precios finales.
                     </p>
                   </div>
-                  <button
-                    onClick={handleFinalizarOrden}
-                    className="pro-btn-crimson px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap cursor-pointer shadow-md"
-                  >
-                    Finalizar y Facturar (ACID)
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    {detalleOrden.pagos.length === 0 && (
+                      <button
+                        onClick={handleCancelarOrden}
+                        className="px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap cursor-pointer border border-rose-400 text-rose-300 hover:bg-rose-950/50"
+                      >
+                        Cancelar Orden
+                      </button>
+                    )}
+                    <button
+                      onClick={handleFinalizarOrden}
+                      className="pro-btn-crimson px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap cursor-pointer shadow-md"
+                    >
+                      Finalizar y Facturar (ACID)
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -1380,7 +1450,7 @@ export default function App() {
                       </b>
                     </p>
                   </div>
-                  {parseFloat(detalleOrden.orden.saldo || detalleOrden.orden.total) > 0 && (
+                  {detalleOrden.orden.estado !== 'cancelada' && parseFloat(detalleOrden.orden.saldo || detalleOrden.orden.total) > 0 && (
                     <div className="flex gap-2">
                       <input
                         type="number"
@@ -1442,15 +1512,20 @@ export default function App() {
               </div>
               <form onSubmit={handleCrearOrden} className="space-y-3.5">
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">ID del Vehículo Registrado</label>
-                  <input
-                    type="number"
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Vehículo</label>
+                  <select
                     required
-                    placeholder="Ej. 1"
                     value={nuevaOrden.vehiculo_id}
                     onChange={(e) => setNuevaOrden({ ...nuevaOrden, vehiculo_id: e.target.value })}
                     className="pro-input w-full text-sm p-2.5"
-                  />
+                  >
+                    <option value="">Selecciona un vehículo registrado</option>
+                    {vehiculosDisponibles.map((vehiculo) => (
+                      <option key={vehiculo.id} value={vehiculo.id}>
+                        {vehiculo.marca} {vehiculo.modelo} · {vehiculo.placas} · {vehiculo.cliente_nombre}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1">Motivo / Síntomas Reportados</label>

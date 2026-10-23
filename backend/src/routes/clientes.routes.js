@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getClientes,
+  getVehiculos,
   getClienteById,
   crearCliente,
   actualizarCliente,
@@ -15,6 +16,7 @@ const router = Router();
 router.use(verificarToken);
 
 router.get('/', getClientes);
+router.get('/vehiculos', getVehiculos);
 router.get('/:id', getClienteById);
 router.post('/', requerirRol('admin', 'recepcion'), crearCliente);
 router.put('/:id', requerirRol('admin', 'recepcion'), actualizarCliente);

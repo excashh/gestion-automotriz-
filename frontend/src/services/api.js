@@ -47,6 +47,7 @@ export const dashboardService = {
 export const clientesService = {
   getClientes: (page = 1, buscar = '') =>
     request(`/clientes?page=${page}&limit=10&buscar=${encodeURIComponent(buscar)}`),
+  getVehiculos: () => request('/clientes/vehiculos'),
   getClienteById: (id) => request(`/clientes/${id}`),
   crearCliente: (cliente) =>
     request('/clientes', { method: 'POST', body: JSON.stringify(cliente) }),
@@ -87,6 +88,11 @@ export const ordenesService = {
     request(`/ordenes/${ordenId}/finalizar`, {
       method: 'PUT',
       body: JSON.stringify({ diagnostico }),
+    }),
+  cancelarOrden: (ordenId, motivo) =>
+    request(`/ordenes/${ordenId}/cancelar`, {
+      method: 'PUT',
+      body: JSON.stringify({ motivo }),
     }),
   registrarPago: (ordenId, pago) =>
     request(`/ordenes/${ordenId}/pagos`, { method: 'POST', body: JSON.stringify(pago) }),

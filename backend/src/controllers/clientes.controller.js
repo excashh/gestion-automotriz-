@@ -1,5 +1,22 @@
 import { query } from '../config/db.js';
 
+// Listar vehículos activos para asociarlos a una nueva orden
+export const getVehiculos = async (req, res, next) => {
+  try {
+    const result = await query(
+      `SELECT v.id, v.placas, v.marca, v.modelo, v.anio, c.nombre AS cliente_nombre
+       FROM vehiculos v
+       JOIN clientes c ON c.id = v.cliente_id
+       WHERE v.activo = true AND c.activo = true
+       ORDER BY c.nombre, v.marca, v.modelo`
+    );
+
+    res.status(200).json({ success: true, datos: result.rows });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Listar clientes con paginación y búsqueda (Req #13, #16)
 export const getClientes = async (req, res, next) => {
   try {

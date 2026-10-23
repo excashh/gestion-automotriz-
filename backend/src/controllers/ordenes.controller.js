@@ -40,13 +40,14 @@ export const getOrdenes = async (req, res, next) => {
     );
     const total = parseInt(countResult.rows[0].count, 10);
 
-    // Conteos globales para badges de filtro (todas, pendientes, completadas, entregadas)
+    // Conteos globales para badges de filtro
     const contadoresRes = await query(
       `SELECT
          COUNT(*) AS total,
          COUNT(*) FILTER (WHERE estado IN ('programada', 'en_revision', 'en_reparacion')) AS pendientes,
          COUNT(*) FILTER (WHERE estado = 'completada') AS completadas,
-         COUNT(*) FILTER (WHERE estado = 'entregada') AS entregadas
+         COUNT(*) FILTER (WHERE estado = 'entregada') AS entregadas,
+         COUNT(*) FILTER (WHERE estado = 'cancelada') AS canceladas
        FROM ordenes_trabajo`
     );
     const conteosRow = contadoresRes.rows[0] || {};
@@ -82,6 +83,7 @@ export const getOrdenes = async (req, res, next) => {
         pendientes: parseInt(conteosRow.pendientes || 0, 10),
         completadas: parseInt(conteosRow.completadas || 0, 10),
         entregadas: parseInt(conteosRow.entregadas || 0, 10),
+        canceladas: parseInt(conteosRow.canceladas || 0, 10),
       },
       datos: dataResult.rows,
     });
@@ -377,6 +379,61 @@ export const finalizarOrden = async (req, res, next) => {
       mensaje: `Orden ${orden.folio} finalizada con éxito. Inventario actualizado.`,
       orden: ordenActualizada.rows[0],
     });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    next(error);
+  } finally {
+    client.release();
+  }
+};
+
+// Cancelar una orden activa sin borrar su historial
+export const cancelarOrden = async (req, res, next) => {
+  const motivo = typeof req.body.motivo === 'string' ? req.body.motivo.trim() : '';
+  if (!motivo) {
+    return res.status(400).json({ success: false, mensaje: 'Indica el motivo de cancelación.' });
+  }
+
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    await client.query('BEGIN');
+
+    const ordenRes = await client.query(
+      `SELECT id, folio, estado FROM ordenes_trabajo WHERE id = $1 FOR UPDATE`,
+      [id]
+    );
+    if (ordenRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, mensaje: 'Orden no encontrada.' });
+    }
+
+    const orden = ordenRes.rows[0];
+    if (!['programada', 'en_revision', 'en_reparacion'].includes(orden.estado)) {
+      await client.query('ROLLBACK');
+      return res.status(422).json({ success: false, mensaje: 'Solo se pueden cancelar órdenes activas.' });
+    }
+
+    const pagoRes = await client.query('SELECT 1 FROM pagos WHERE orden_id = $1 LIMIT 1', [id]);
+    if (pagoRes.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(422).json({ success: false, mensaje: 'No se puede cancelar una orden con pagos registrados.' });
+    }
+
+    const actualizada = await client.query(
+      `UPDATE ordenes_trabajo
+       SET estado = 'cancelada', motivo_cancelacion = $1, fecha_cierre = NOW()
+       WHERE id = $2 RETURNING *`,
+      [motivo, id]
+    );
+    await client.query(
+      `INSERT INTO auditoria (usuario_id, accion, entidad, entidad_id, datos_anteriores, datos_nuevos)
+       VALUES ($1, 'cancelar_orden', 'ordenes_trabajo', $2, $3, $4)`,
+      [req.usuario.id, id, JSON.stringify({ estado: orden.estado }), JSON.stringify({ estado: 'cancelada', motivo })]
+    );
+    await client.query('COMMIT');
+
+    res.status(200).json({ success: true, mensaje: `Orden ${orden.folio} cancelada.`, orden: actualizada.rows[0] });
   } catch (error) {
     await client.query('ROLLBACK');
     next(error);
