@@ -675,7 +675,7 @@ export default function App() {
   // 2. APLICACIÓN PRINCIPAL (AUTENTICADO)
   // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800 selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-800 selection:bg-rose-500 selection:text-white">
       {/* Notificación Toast flotante */}
       {notificacion && (
         <div
@@ -695,9 +695,9 @@ export default function App() {
       )}
 
       {/* Barra Lateral / Sidebar - SaaS Clean Pro Carbón con desvanecido sutil rojo */}
-      <aside className="w-64 sidebar-crimson-subtle text-zinc-300 flex flex-col flex-shrink-0 relative z-20">
+      <aside className="w-full md:w-64 sidebar-crimson-subtle text-zinc-300 flex flex-col flex-shrink-0 relative z-20 md:min-h-screen">
         {/* Identidad de Marca */}
-        <div className="p-5 border-b border-zinc-800/80 flex items-center gap-3">
+        <div className="p-3 md:p-5 border-b border-zinc-800/80 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-rose-700 text-white flex items-center justify-center shadow-md shadow-rose-950/50 ring-1 ring-white/10">
             <Wrench className="w-5 h-5" />
           </div>
@@ -713,10 +713,10 @@ export default function App() {
         </div>
 
         {/* Navegación Principal */}
-        <nav className="flex-1 p-3.5 space-y-1 overflow-y-auto">
+        <nav className="flex flex-row md:flex-col flex-1 p-2 md:p-3.5 gap-1 md:space-y-1 overflow-x-auto md:overflow-y-auto">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+            className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'dashboard'
                 ? 'sidebar-item-active text-white font-semibold'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -728,7 +728,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('ordenes')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+            className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'ordenes'
                 ? 'sidebar-item-active text-white font-semibold'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -740,7 +740,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('clientes')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+            className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'clientes'
                 ? 'sidebar-item-active text-white font-semibold'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -752,7 +752,7 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('inventario')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+            className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'inventario'
                 ? 'sidebar-item-active text-white font-semibold'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -768,7 +768,7 @@ export default function App() {
                 setActiveTab('reportes');
                 cargarReporte();
               }}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+              className={`w-auto md:w-full flex-shrink-0 flex items-center gap-2 md:gap-3 px-3 md:px-3.5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === 'reportes'
                   ? 'sidebar-item-active text-white font-semibold'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80 font-medium'
@@ -781,8 +781,8 @@ export default function App() {
         </nav>
 
         {/* Perfil del Usuario y Cierre de Sesión */}
-        <div className="p-3.5 border-t border-zinc-800/80 bg-zinc-950/70">
-          <div className="flex items-center gap-3 px-2 py-2 mb-2 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+        <div className="p-2 md:p-3.5 border-t border-zinc-800/80 bg-zinc-950/70 flex items-center gap-2 md:block">
+          <div className="flex-1 min-w-0 flex items-center gap-3 px-2 py-2 mb-0 md:mb-2 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-700 to-rose-500 text-white flex items-center justify-center font-bold text-xs ring-1 ring-white/10 flex-shrink-0">
               {user.nombre ? user.nombre.charAt(0).toUpperCase() : 'U'}
             </div>
@@ -794,7 +794,7 @@ export default function App() {
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900/80 hover:bg-rose-950/50 hover:text-rose-300 text-zinc-400 border border-zinc-800/80 hover:border-rose-900/50 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+            className="w-auto md:w-full flex-shrink-0 flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900/80 hover:bg-rose-950/50 hover:text-rose-300 text-zinc-400 border border-zinc-800/80 hover:border-rose-900/50 rounded-xl text-xs font-semibold transition-all cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" /> Cerrar Sesión
           </button>
@@ -802,7 +802,7 @@ export default function App() {
       </aside>
 
       {/* Contenido Principal */}
-      <main className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
         {/* =========================================================================
             VISTA 1: DASHBOARD
            ========================================================================= */}
