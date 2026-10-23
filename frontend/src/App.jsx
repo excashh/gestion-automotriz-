@@ -51,7 +51,7 @@ import {
   refaccionesService,
   ordenesService
 } from './services/api';
-import { toast, alertaError, alertaAdvertencia, confirmarAccion } from './utils/alertas';
+import { toast, alertaError, alertaAdvertencia, confirmarAccion, pedirMotivoCancelacion } from './utils/alertas';
 import { LISTA_MARCAS, obtenerModelos, decodificarVin } from './services/vehiculosCatalog';
 
 // Paleta de gráficas: Carmesí Deportivo, Vino profundo, Ámbar cálido, Esmeralda, Pizarra grafito
@@ -386,6 +386,20 @@ export default function App() {
     }
   };
 
+  const handleCancelarOrden = async () => {
+    const motivo = await pedirMotivoCancelacion();
+    if (!motivo) return;
+    try {
+      const res = await ordenesService.cancelarOrden(ordenSeleccionada, motivo);
+      notificar(res.mensaje);
+      verDetalleOrden(ordenSeleccionada);
+      cargarOrdenes();
+      cargarDashboard();
+    } catch (err) {
+      notificar(err.message, 'error');
+    }
+  };
+
   const handleRegistrarPago = async () => {
     if (!montoPago || montoPago <= 0) return notificar('Ingresa un monto válido', 'error');
     try {
@@ -417,6 +431,12 @@ export default function App() {
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Completada
+          </span>
+        );
+      case 'cancelada':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Cancelada
           </span>
         );
       case 'en_reparacion':
@@ -1149,6 +1169,26 @@ export default function App() {
                   {ordenesData.conteos?.entregadas ?? 0}
                 </span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setFiltroEstadoOrden('cancelada')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  filtroEstadoOrden === 'cancelada'
+                    ? 'bg-slate-600 text-white shadow-sm ring-2 ring-slate-600/20'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-400'
+                }`}
+              >
+                <X className={`w-3.5 h-3.5 ${filtroEstadoOrden === 'cancelada' ? 'text-white' : 'text-slate-500'}`} />
+                <span>Canceladas</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    filtroEstadoOrden === 'cancelada' ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {ordenesData.conteos?.canceladas ?? 0}
+                </span>
+              </button>
             </div>
 
             {/* Buscador y Filtros Secundarios */}
@@ -1182,6 +1222,7 @@ export default function App() {
                   <option value="pendiente">⚡ Pendientes (activas)</option>
                   <option value="completada">✓ Completada</option>
                   <option value="entregada">✔ Entregada</option>
+                  <option value="cancelada">Cancelada</option>
                   <option disabled>──────────</option>
                   <option value="programada">Programada</option>
                   <option value="en_revision">En Revisión</option>
@@ -1315,7 +1356,7 @@ export default function App() {
                   <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
                     Refacciones / Piezas Utilizadas
                   </h4>
-                  {detalleOrden.orden.estado !== 'entregada' && detalleOrden.orden.estado !== 'completada' && (
+                  {detalleOrden.orden.estado !== 'entregada' && detalleOrden.orden.estado !== 'completada' && detalleOrden.orden.estado !== 'cancelada' && (
                     <div className="flex gap-2">
                       <select
                         onChange={(e) => setAgregarRefData({ ...agregarRefData, refaccion_id: e.target.value })}
@@ -1365,7 +1406,7 @@ export default function App() {
               </div>
 
               {/* Botón de Cierre Transaccional (ACID) */}
-              {detalleOrden.orden.estado !== 'completada' && detalleOrden.orden.estado !== 'entregada' && (
+              {['programada', 'en_revision', 'en_reparacion'].includes(detalleOrden.orden.estado) && (
                 <div className="p-4 bg-zinc-950 text-white rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-zinc-800">
                   <div>
                     <div className="flex items-center gap-2">
@@ -1376,12 +1417,22 @@ export default function App() {
                       Transacción SQL atómica: descuenta existencias en almacén y congela los precios finales.
                     </p>
                   </div>
-                  <button
-                    onClick={handleFinalizarOrden}
-                    className="pro-btn-crimson px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap cursor-pointer shadow-md"
-                  >
-                    Finalizar y Facturar (ACID)
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    {detalleOrden.pagos.length === 0 && (
+                      <button
+                        onClick={handleCancelarOrden}
+                        className="px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap cursor-pointer border border-rose-400 text-rose-300 hover:bg-rose-950/50"
+                      >
+                        Cancelar Orden
+                      </button>
+                    )}
+                    <button
+                      onClick={handleFinalizarOrden}
+                      className="pro-btn-crimson px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap cursor-pointer shadow-md"
+                    >
+                      Finalizar y Facturar (ACID)
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -1399,7 +1450,7 @@ export default function App() {
                       </b>
                     </p>
                   </div>
-                  {parseFloat(detalleOrden.orden.saldo || detalleOrden.orden.total) > 0 && (
+                  {detalleOrden.orden.estado !== 'cancelada' && parseFloat(detalleOrden.orden.saldo || detalleOrden.orden.total) > 0 && (
                     <div className="flex gap-2">
                       <input
                         type="number"

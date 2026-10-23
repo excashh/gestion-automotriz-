@@ -89,6 +89,11 @@ export const ordenesService = {
       method: 'PUT',
       body: JSON.stringify({ diagnostico }),
     }),
+  cancelarOrden: (ordenId, motivo) =>
+    request(`/ordenes/${ordenId}/cancelar`, {
+      method: 'PUT',
+      body: JSON.stringify({ motivo }),
+    }),
   registrarPago: (ordenId, pago) =>
     request(`/ordenes/${ordenId}/pagos`, { method: 'POST', body: JSON.stringify(pago) }),
 };

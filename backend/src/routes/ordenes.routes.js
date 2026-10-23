@@ -6,6 +6,7 @@ import {
   agregarRefaccion,
   agregarServicio,
   finalizarOrden,
+  cancelarOrden,
   registrarPago,
 } from '../controllers/ordenes.controller.js';
 import { verificarToken, requerirRol } from '../middlewares/auth.js';
@@ -20,6 +21,7 @@ router.post('/', requerirRol('admin', 'recepcion'), crearOrden);
 router.post('/:id/refacciones', requerirRol('admin', 'recepcion', 'mecanico'), agregarRefaccion);
 router.post('/:id/servicios', requerirRol('admin', 'recepcion', 'mecanico'), agregarServicio);
 router.put('/:id/finalizar', requerirRol('admin', 'recepcion'), finalizarOrden);
+router.put('/:id/cancelar', requerirRol('admin', 'recepcion'), cancelarOrden);
 router.post('/:id/pagos', requerirRol('admin', 'recepcion'), registrarPago);
 
 export default router;

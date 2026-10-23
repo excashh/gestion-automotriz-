@@ -87,6 +87,25 @@ export const confirmarAccion = async ({
   return result.isConfirmed;
 };
 
+export const pedirMotivoCancelacion = async () => {
+  const result = await Swal.fire({
+    icon: 'warning',
+    title: '¿Cancelar esta orden?',
+    text: 'La orden permanecerá en el historial.',
+    input: 'textarea',
+    inputLabel: 'Motivo de cancelación',
+    inputPlaceholder: 'Escribe el motivo...',
+    inputValidator: (value) => (!value?.trim() ? 'Indica el motivo para continuar.' : undefined),
+    showCancelButton: true,
+    confirmButtonText: 'Sí, cancelar orden',
+    cancelButtonText: 'Volver',
+    reverseButtons: true,
+    buttonsStyling: false,
+    customClass: { ...customClass, input: 'pro-input w-full p-3 text-sm' },
+  });
+  return result.isConfirmed ? result.value.trim() : null;
+};
+
 export default {
   toast,
   alertaExito,
