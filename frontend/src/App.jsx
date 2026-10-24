@@ -679,7 +679,7 @@ export default function App() {
       {/* Notificación Toast flotante */}
       {notificacion && (
         <div
-          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl text-white font-medium text-sm flex items-center gap-3 transition-all transform animate-in fade-in slide-in-from-bottom-3 ${
+          className={`fixed bottom-6 right-6 z-[100] px-4 py-3 rounded-xl shadow-2xl text-white font-medium text-sm flex items-center gap-3 transition-all transform animate-in fade-in slide-in-from-bottom-3 ${
             notificacion.tipo === 'error'
               ? 'bg-zinc-900 border border-rose-500/50 text-rose-200'
               : 'bg-zinc-900 border border-emerald-500/50 text-emerald-200'
