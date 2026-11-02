@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes.js';
 import clientesRoutes from './routes/clientes.routes.js';
 import refaccionesRoutes from './routes/refacciones.routes.js';
 import ordenesRoutes from './routes/ordenes.routes.js';
+import mecanicosRoutes from './routes/mecanicos.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
@@ -41,6 +42,7 @@ app.get('/api', (req, res) => {
       clientes: '/api/clientes',
       refacciones: '/api/refacciones',
       ordenes: '/api/ordenes',
+      mecanicos: '/api/mecanicos',
       dashboard: '/api/dashboard/stats',
       documentacion: '/docs/api.md',
     },
@@ -53,6 +55,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/refacciones', refaccionesRoutes);
 app.use('/api/ordenes', ordenesRoutes);
+app.use('/api/mecanicos', mecanicosRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
 // Manejo de ruta no encontrada (404)

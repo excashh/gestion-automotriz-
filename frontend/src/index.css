@@ -125,3 +125,210 @@
 }
 
 
+/* =========================================================
+   Modales nativos <dialog> en Top Layer y Accesibilidad
+   ========================================================= */
+dialog.autopro-dialog {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  max-width: min(100vw - 1.5rem, var(--dialog-max-w, 42rem));
+  max-height: calc(100dvh - 1.5rem);
+  width: 100%;
+  margin: auto;
+  overflow: visible;
+}
+
+dialog.autopro-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgba(9, 9, 11, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+/* Input con estado de error accesible */
+.pro-input-error {
+  border-color: #e11d48 !important;
+  background-color: #fff1f2;
+}
+
+.pro-input-error:focus {
+  border-color: #be123c !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2) !important;
+}
+
+/* Ocultamiento visual accesible (mantiene el control en el árbol de accesibilidad) */
+.visually-hidden {
+  position: absolute;
+  clip-path: inset(50%);
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   Tabla responsiva accesible con encabezados fijos y @container
+   ========================================================= */
+.mecanicos-table-wrapper {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: min(640px, 78vh);
+  container-type: inline-size;
+}
+
+.mecanicos-table-wrapper table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  --label-2: "Tipo y Especialidad";
+  --label-3: "Su Trabajo / Orden Activa";
+  --label-4: "Órdenes Pendientes";
+  --label-5: "Órdenes Entregadas";
+  --label-6: "Disponibilidad";
+  --label-7: "Acciones";
+}
+
+.mecanicos-table-wrapper thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+}
+
+.mecanicos-table-wrapper tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  background: #ffffff;
+}
+
+@container (width < 760px) {
+  .mecanicos-table-wrapper table,
+  .mecanicos-table-wrapper thead,
+  .mecanicos-table-wrapper tbody,
+  .mecanicos-table-wrapper tr,
+  .mecanicos-table-wrapper th,
+  .mecanicos-table-wrapper td {
+    display: block;
+  }
+
+  .mecanicos-table-wrapper thead {
+    display: none;
+  }
+
+  .mecanicos-table-wrapper tr {
+    margin-block-end: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.875rem;
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .mecanicos-table-wrapper tbody th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    background: #f8fafc;
+    border-block-end: 1px solid #e2e8f0;
+  }
+
+  .mecanicos-table-wrapper td:nth-child(2)::before {
+    content: var(--label-2) ": ";
+    font-weight: 700;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    display: block;
+    margin-block-end: 0.25rem;
+  }
+  .mecanicos-table-wrapper td:nth-child(3)::before {
+    content: var(--label-3) ": ";
+    font-weight: 700;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    display: block;
+    margin-block-end: 0.25rem;
+  }
+  .mecanicos-table-wrapper td:nth-child(4)::before {
+    content: var(--label-4) ": ";
+    font-weight: 700;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    display: block;
+    margin-block-end: 0.25rem;
+  }
+  .mecanicos-table-wrapper td:nth-child(5)::before {
+    content: var(--label-5) ": ";
+    font-weight: 700;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    display: block;
+    margin-block-end: 0.25rem;
+  }
+  .mecanicos-table-wrapper td:nth-child(6)::before {
+    content: var(--label-6) ": ";
+    font-weight: 700;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    display: block;
+    margin-block-end: 0.25rem;
+  }
+  .mecanicos-table-wrapper td:nth-child(7)::before {
+    content: var(--label-7) ": ";
+    font-weight: 700;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    display: block;
+    margin-block-end: 0.25rem;
+  }
+}
+
+/* Impresión limpia para el Reporte de Entrega */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .autopro-printable,
+  .autopro-printable * {
+    visibility: visible;
+  }
+  .autopro-printable {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

@@ -6,7 +6,7 @@ echo ===================================================
 echo.
 
 echo 1. Iniciando Servidor Backend en puerto 4000...
-start "AutoPro Backend" cmd /k "cd /d %~dp0backend && npm start"
+start "AutoPro Backend" cmd /k "cd /d %~dp0backend && npm run dev"
 
 timeout /t 3 /nobreak >nul
 

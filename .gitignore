@@ -33,3 +33,6 @@ yarn-error.log*
 *.sw?
 .DS_Store
 .agents/
+
+# Almacenamiento local de archivos subidos (evidencias)
+backend/storage/

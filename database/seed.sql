@@ -16,10 +16,16 @@ INSERT INTO usuarios (id, rol_id, nombre, email, password_hash, activo) VALUES
 (3, 3, 'Miguel Mecánico', 'mecanico@autopro.com', '$2a$10$oqPfiMrnZOgT80EsTaGVne/oVsIBl2ywEyOQyBdN0wOYPwRgD4fsm', true)
 ON CONFLICT (id) DO NOTHING;
 
--- 3. MECÁNICOS
-INSERT INTO mecanicos (id, usuario_id, nombre, especialidad, telefono, tarifa_hora, estatus, activo) VALUES
-(1, 3, 'Miguel Hernández', 'Motor y Transmisión', '555-102030', 250.00, 'disponible', true),
-(2, NULL, 'Roberto Gómez', 'Frenos y Suspensión', '555-405060', 200.00, 'disponible', true)
+-- 3. MECÁNICOS (Tipo 1: Generales aptos para cualquier tarea | Tipo 2: Especializados por área automotriz)
+INSERT INTO mecanicos (id, usuario_id, nombre, tipo, especialidad, descripcion_trabajo, telefono, tarifa_hora, estatus, activo) VALUES
+(1, 3,    'Miguel Hernández',   'especializado', 'Motor y Transmisión',                 'Ajuste de motores gasolina y diésel, sincronización de distribución, reparación de transmisiones automáticas, CVT y embragues.', '555-102030', 280.00, 'disponible', true),
+(2, NULL, 'Roberto Gómez',      'especializado', 'Frenos y Suspensión',                 'Sistemas de frenado ABS/EBD, rectificado de discos, balatas cerámicas, dirección electroasistida, amortiguación y alineación.', '555-405060', 240.00, 'disponible', true),
+(3, NULL, 'Juan Carlos Méndez', 'general',       'Mecánica General Multimarca',         'Apto para cualquier tarea del taller: mantenimiento preventivo y correctivo integral, afinaciones, frenos, fluidos e inspección multipunto.', '555-301122', 210.00, 'disponible', true),
+(4, NULL, 'Fernando Ríos',      'general',       'Mecánica General y Servicio Rápido',  'Apto para cualquier tarea operativa: afinación mayor, cambio de aceite y filtros, revisión general, enfriamiento y soporte multi-bahía.', '555-304455', 200.00, 'disponible', true),
+(5, NULL, 'Alejandro Vega',     'especializado', 'Electrónica y Diagnóstico',           'Diagnóstico computarizado avanzado (OBD-II y osciloscopio), programación de módulos ECU/BCM, redes CAN-Bus, sensores e inyección electrónica.', '555-508899', 320.00, 'disponible', true),
+(6, NULL, 'Sofía Ramírez',      'especializado', 'Sistema Eléctrico e Híbridos',        'Diagnóstico y reparación de alternadores, motores de arranque, arneses eléctricos, cortos circuitos, baterías y sistemas de carga.', '555-607711', 290.00, 'disponible', true),
+(7, NULL, 'Daniel Ortega',      'especializado', 'Climatización y A/C',                 'Detección de fugas en sistema climático, compresores, evaporadores, vacío, carga de gas refrigerante y controles electrónicos de A/C.', '555-709933', 250.00, 'disponible', true),
+(8, NULL, 'Héctor Navarro',     'general',       'Mecánica General Preventiva',         'Apto para cualquier tarea mecánica: revisiones generales de seguridad, mantenimiento periódico, bandas, mangueras y preparación de entrega.', '555-802244', 195.00, 'descanso', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. CLIENTES
@@ -43,14 +49,20 @@ INSERT INTO categorias (id, nombre, tipo, activo) VALUES
 (3, 'Diagnóstico Electrónico', 'servicio', true),
 (4, 'Filtros y Lubricantes', 'refaccion', true),
 (5, 'Balatas y Discos', 'refaccion', true),
-(6, 'Bujías e Ignición', 'refaccion', true)
+(6, 'Bujías e Ignición', 'refaccion', true),
+(7, 'Motor y Transmisión', 'servicio', true),
+(8, 'Climatización y Eléctrico', 'servicio', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 7. SERVICIOS (MANO DE OBRA)
-INSERT INTO servicios (id, categoria_id, codigo, nombre, descripcion, horas_estandar, precio_base, activo) VALUES
-(1, 1, 'SRV-AFIN-01', 'Afinación Mayor 4 Cilindros', 'Cambio de bujías, filtros, aceite y lavado de inyectores', 2.5, 950.00, true),
-(2, 2, 'SRV-FRN-01', 'Cambio de Balatas Delanteras', 'Reemplazo y rectificación básica de discos delanteros', 1.5, 600.00, true),
-(3, 3, 'SRV-SCN-01', 'Escaneo y Diagnóstico por Computadora', 'Lectura de códigos OBD-II y borrado de fallas', 0.8, 400.00, true)
+INSERT INTO servicios (id, categoria_id, codigo, nombre, descripcion, horas_estandar, precio_base, area_especialidad, etapas_evidencia_obligatorias, activo) VALUES
+(1, 1, 'SRV-AFIN-01', 'Afinación Mayor 4 Cilindros', 'Cambio de bujías, filtros, aceite y lavado de inyectores', 2.5, 950.00, NULL, '{}', true),
+(2, 2, 'SRV-FRN-01', 'Cambio de Balatas Delanteras', 'Reemplazo y rectificación básica de discos delanteros', 1.5, 600.00, 'Frenos y Suspensión', ARRAY['antes_diagnostico', 'despues_instalacion'], true),
+(3, 3, 'SRV-SCN-01', 'Escaneo y Diagnóstico por Computadora', 'Lectura de códigos OBD-II, sensores y diagnóstico electrónico', 0.8, 400.00, 'Electrónica y Diagnóstico', '{}', true),
+(4, 3, 'SRV-ELC-01', 'Diagnóstico y Reparación de Módulo Electrónico / Sensores', 'Pruebas con osciloscopio, revisión de red CAN-Bus, cuerpo de aceleración e inyección electrónica', 2.0, 1150.00, 'Electrónica y Diagnóstico', ARRAY['antes_diagnostico', 'despues_instalacion'], true),
+(5, 7, 'SRV-MTR-01', 'Sincronización de Distribución y Diagnóstico de Motor', 'Revisión de compresión, kit de distribución y puesta a tiempo del motor', 4.0, 2200.00, 'Motor y Transmisión', ARRAY['antes_diagnostico', 'pieza_retirada', 'despues_instalacion'], true),
+(6, 8, 'SRV-AC-01',  'Mantenimiento y Recarga de Aire Acondicionado', 'Prueba de hermeticidad, vacío y recarga de gas refrigerante R134a', 1.5, 850.00, 'Climatización y A/C', '{}', true),
+(7, 8, 'SRV-ALT-01', 'Reparación de Alternador y Sistema de Carga', 'Diagnóstico de caída de tensión, regulador, marcha y arneses eléctricos', 2.0, 980.00, 'Sistema Eléctrico e Híbridos', '{}', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 8. REFACCIONES (INVENTARIO)
